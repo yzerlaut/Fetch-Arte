@@ -73,7 +73,6 @@ class video:
                 file_url = self.props['url'][cond][0]
                 break
 
-        print(file_url)
         # create response object 
         r = requests.get(file_url, stream = True) 
           
@@ -105,6 +104,7 @@ while len(l)>10:
     l = f.readline()
     
 for link in IDS:
+    print('=================================================')
     vid = video(link)
     try:
         vid.download()

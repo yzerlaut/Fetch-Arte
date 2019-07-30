@@ -52,9 +52,10 @@ C:\Users\zeihr\Downloads\Fetch-Arte>
 
 the script runs and downloads the videos one by one to the destination folder (the `Fetch-Arte/` directory)
 ```
-C:\Users\zeihr\Fetch-Arte>python script.py
+
+C:\Users\zeihr\Downloads\Fetch-Arte>python script.py
 ** /!\ the destination directory /media/yann/DATA/Arte/ was not found  /!\ **
----> setting the destination directory to the current directory C:\Users\zeihr\Fetch-Arte
+---> setting the destination directory to the current directory C:\Users\zeihr\Downloads\Fetch-Arte
 
  Link 1 ) ***************************************************
 Downloading: L'art aborigène au pied des Alpes (2 min)

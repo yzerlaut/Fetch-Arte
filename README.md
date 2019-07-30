@@ -43,10 +43,10 @@ e.g. on windows, write `chdir Fetch-Arte` and press Enter
 
 `python script.py `
 
-## ouptput
+## output
 
 the script runs and downloads the videos one by one to the destination folder (the `Fetch-Arte/` directory)
-`
+```
 C:\Users\zeihr\Fetch-Arte>python script.py
 ** /!\ the destination directory /media/yann/DATA/Arte/ was not found  /!\ **
 ---> setting the destination directory to the current directory C:\Users\zeihr\Fetch-Arte
@@ -66,7 +66,7 @@ Downloading: La minute vieille (2 min)
  Link 4 ) ***************************************************
 Downloading: Innovations médicales (3 min)
 [==================================================]
-`
+```
 
 ## Run the script with options
 

@@ -74,7 +74,7 @@ class video:
         with open(os.path.join(folder,
           self.props['reformated_title']+args.extension), 'wb') as f: 
                     
-            print('%s (%.0f min)' % (self.props['title'],self.props['duration']))
+            print('Downloading: %s (%.0f min)' % (self.props['title'],self.props['duration']))
             if total_length is None: # no content length header
                 f.write(r.content)
             else:
@@ -106,8 +106,8 @@ def run_script(args):
     while len(l)>10:
         IDS.append(l.split(args.root_link)[1][:12])
         l = f.readline()
-    for link in IDS:
-        print('\n*************************************************************')
+    for ii, link in enumerate(IDS):
+        print('\n Link %s ) ***************************************************' % str(ii+1))
         vid = video(link, args)
         if not already_there(vid.props['reformated_title']+\
                              args.extension,

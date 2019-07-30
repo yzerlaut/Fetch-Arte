@@ -19,7 +19,7 @@ Two options:
 
 2. download the code in the zip format here:
 https://github.com/yzerlaut/Fetch-Arte/archive/master.zip
-and unzip it where you want
+and extract it where you want
 
 ## Build your "arte.txt" file:
 
@@ -33,11 +33,16 @@ By default, you should just modify this file in the `Fetch-Arte` folder (remove 
 
 1. open the shell (command line interface)
 
-e.g. on windows, open the command prompt by searching `cmd` on the Windows Menu
+e.g. on windows, open the command prompt by searching `cmd` in the Windows Menu
 
 2. navigate to the directory 
 
-e.g. on windows, write `chdir Fetch-Arte` and press Enter
+e.g. with the command `chdir` on windows , if the folder was extracted as `Fetch-Arte` in the folder `Downloads`:
+```
+C:\Users\zeihr>chdir Downloads\Fetch-Arte
+
+C:\Users\zeihr\Downloads\Fetch-Arte>
+```
 
 3. run the program by executing:
 

@@ -1,8 +1,7 @@
 import requests
 import numpy as np
 import pprint, os, sys
-desktop = os.path.expanduser("~/Desktop")
-
+import argparse
 
 def reformat_props(data):
 
@@ -57,8 +56,8 @@ class video:
     def download(self,
                  quality = '640x360',
                  languages = ['VOF', 'VF', 'VOSTF'],
-                 folder='/media/yann/DATA/Arte/',
-                 chunk_size = 1024*1024):
+                 folder='./',
+                 chunk_size = 512*512):
         
         file_url = ''
         for l in languages:
@@ -85,8 +84,9 @@ class video:
                     dl += len(data)
                     f.write(data)
                     done = int(50 * dl / total_length)
-                    sys.stdout.write("\r[%s%s]\n" % ('=' * done, ' ' * (50-done)) )    
+                    sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50-done)) )    
                     sys.stdout.flush()                
+        print('')
                     
 
 def already_there(filename, folder):
@@ -113,14 +113,16 @@ def run_script(args):
                              args.extension,
                              args.dest_folder):
             try:
-                vid.download(folder=args.dest_folder)
+                vid.download(
+                    quality = args.quality,
+                    languages = args.prefered_languages,
+                    folder=args.dest_folder)
             except requests.exceptions.MissingSchema:
-                print(vid.props['title'], 'not found with the API')
+                print(' /!\ %s not found with the API /!\ ' % vid.props['title'])
 
 
 if __name__=='__main__':
     
-    import argparse
     # First a nice documentation 
     parser=argparse.ArgumentParser(description=
      """ 
@@ -131,10 +133,12 @@ if __name__=='__main__':
 
     parser.add_argument('-f', "--txt_file",
                         help="filename of files with the ARTE links",
-                        default=os.path.join(desktop, 'arte.txt'))
+                        default='arte.txt')
+
     parser.add_argument('-rl', "--root_link",
                         help="root of ARTE links", type=str,
                         default='https://www.arte.tv/fr/videos/')
+
     parser.add_argument('-al', "--api_link",
                         help="API link of ARTE videos", type=str,
                         default='https://api.arte.tv/api/player/v1/config/fr/')
@@ -142,8 +146,33 @@ if __name__=='__main__':
     parser.add_argument('-df', "--dest_folder",
                         help="destination folder", type=str,
                         default='/media/yann/DATA/Arte/')
+    
     parser.add_argument('-e', "--extension",
                         help="extension", type=str,
                         default='.mp4')
+
+    parser.add_argument('-q', "--quality",
+    help="""
+    quality of the videos in pixels, either:
+    384x216, 640x360, 720x406, 1280x720
+    """,
+                        type=str, default='640x360')
+
+    parser.add_argument('-pl', "--prefered_languages",\
+    help="""
+    default language of the videos
+    in the order of preferences, 
+    e.g. for a french speaker prefering french only when original language was french,
+    pick: ['VOF', 'VF', 'VOSTF']""", nargs='+',
+                        type=str,
+                        default=['VOF', 'VF', 'VOSTF'])
+    
     args = parser.parse_args()
+
+    # check if destination folder exists
+    if not os.path.isdir(args.dest_folder):
+        print('** /!\ the destination directory %s was not found  /!\ **' % args.dest_folder )
+        args.dest_folder = os.path.abspath(os.path.curdir)
+        print('---> setting the destination directory to the current directory %s' % args.dest_folder)
+        
     run_script(args)

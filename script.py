@@ -1,7 +1,7 @@
 import requests
 import numpy as np
 import pprint, os, sys
-from bs4 import BeautifulSoup
+desktop = os.path.expanduser("~/Desktop")
 
 
 def reformat_props(data):
@@ -33,20 +33,14 @@ def reformat_props(data):
 
     return props
 
-    def reformat_title(title):
-        return 
-
     
 class video:
     
-    global api_url
-    api_url = 'https://api.arte.tv/api/player/v1/config/fr/'
-
         
-    def __init__(self, ID):
+    def __init__(self, ID, args):
         self.ID = ID
         
-        req = requests.get(api_url+self.ID)
+        req = requests.get(args.api_link+self.ID)
         if True:
             self.data = req.json()['videoJsonPlayer']
             self.props = reformat_props(self.data)
@@ -62,7 +56,7 @@ class video:
     
     def download(self,
                  quality = '640x360',
-                 languages = ['VOF', 'VOSTF'],
+                 languages = ['VOF', 'VF', 'VOSTF'],
                  folder='/media/yann/DATA/Arte/',
                  chunk_size = 1024*1024):
         
@@ -74,12 +68,12 @@ class video:
                 break
 
         # create response object 
-        r = requests.get(file_url, stream = True) 
-          
+        r = requests.get(file_url, stream = True)
+        
         total_length = r.headers.get('content-length')
-
         # download started 
-        with open(os.path.join(folder,self.props['reformated_title']+'.mp4'), 'wb') as f: 
+        with open(os.path.join(folder,
+          self.props['reformated_title']+args.extension), 'wb') as f: 
                     
             print('%s (%.0f min)' % (self.props['title'],self.props['duration']))
             if total_length is None: # no content length header
@@ -91,22 +85,65 @@ class video:
                     dl += len(data)
                     f.write(data)
                     done = int(50 * dl / total_length)
-                    sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50-done)) )    
+                    sys.stdout.write("\r[%s%s]\n" % ('=' * done, ' ' * (50-done)) )    
                     sys.stdout.flush()                
                     
 
-                    
-f = open('/home/yann/Desktop/arte.txt')
-IDS = []
-l = f.readline()
-while len(l)>10:
-    IDS.append(l.split('https://www.arte.tv/fr/videos/')[1][:12])
-    l = f.readline()
+def already_there(filename, folder):
+    here = False
+    for dd in os.walk(folder):
+        if os.path.isfile(os.path.join(dd[0],filename)):
+            here = True
+            print('---> File already present in:', os.path.join(dd[0],filename))
+    return here
     
-for link in IDS:
-    print('=================================================')
-    vid = video(link)
-    try:
-        vid.download()
-    except requests.exceptions.MissingSchema:
-        print(vid.props['title'], 'not found with the api')
+
+
+def run_script(args):                    
+    f = open(args.txt_file)
+    IDS = []
+    l = f.readline()
+    while len(l)>10:
+        IDS.append(l.split(args.root_link)[1][:12])
+        l = f.readline()
+    for link in IDS:
+        print('\n*************************************************************')
+        vid = video(link, args)
+        if not already_there(vid.props['reformated_title']+\
+                             args.extension,
+                             args.dest_folder):
+            try:
+                vid.download(folder=args.dest_folder)
+            except requests.exceptions.MissingSchema:
+                print(vid.props['title'], 'not found with the API')
+
+
+if __name__=='__main__':
+    
+    import argparse
+    # First a nice documentation 
+    parser=argparse.ArgumentParser(description=
+     """ 
+     Generating random sample of a given distributions and
+     comparing it with its theoretical value
+     """
+    ,formatter_class=argparse.RawTextHelpFormatter)
+
+    parser.add_argument('-f', "--txt_file",
+                        help="filename of files with the ARTE links",
+                        default=os.path.join(desktop, 'arte.txt'))
+    parser.add_argument('-rl', "--root_link",
+                        help="root of ARTE links", type=str,
+                        default='https://www.arte.tv/fr/videos/')
+    parser.add_argument('-al', "--api_link",
+                        help="API link of ARTE videos", type=str,
+                        default='https://api.arte.tv/api/player/v1/config/fr/')
+    
+    parser.add_argument('-df', "--dest_folder",
+                        help="destination folder", type=str,
+                        default='/media/yann/DATA/Arte/')
+    parser.add_argument('-e', "--extension",
+                        help="extension", type=str,
+                        default='.mp4')
+    args = parser.parse_args()
+    run_script(args)

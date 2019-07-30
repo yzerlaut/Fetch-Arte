@@ -4,7 +4,7 @@
 
 ## Requirements
 
-1. a recent version of python (see https://www.python.org/downloads/ )
+1. a recent version of python (see https://www.python.org/downloads/ ). N.B. Most systems come with a python version pre-installed, check it by running the command: `python --version` 
 
 2. some python modules (installed with pip, see https://pip.pypa.io/en/stable/installing/):
 - "requests" (install it from the shell with pip: `pip install requests`)

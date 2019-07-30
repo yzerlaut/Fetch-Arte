@@ -119,5 +119,5 @@ the different options can be seen by running:
 
 *not woking yet* 
 
-the jupyter notebook `notebook.ipynb` provides fragments of code to fetch the content of the Arte website using [BeautifulSoup](https://pypi.org/project/beautifulsoup4/) and thus automates the download (not needing to manually build the `arte.txt` file)
+*but the jupyter notebook `notebook.ipynb` provides fragments of code to fetch the content of the Arte website using [BeautifulSoup](https://pypi.org/project/beautifulsoup4/) and thus automates the download (not needing to manually build the `arte.txt` file)*
 

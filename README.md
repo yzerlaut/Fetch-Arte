@@ -32,10 +32,41 @@ By default, you should just modify this file in the `Fetch-Arte` folder (remove 
 ## Run the script
 
 1. open the shell (command line interface)
+
+e.g. on windows, open the command prompt by searching `cmd` on the Windows Menu
+
 2. navigate to the directory 
-3. run the command:
+
+e.g. on windows, write `chdir Fetch-Arte` and press Enter
+
+3. run the program by executing:
 
 `python script.py `
+
+## ouptput
+
+the script runs and downloads the videos one by one to the destination folder (the `Fetch-Arte/` directory)
+`
+C:\Users\zeihr\Fetch-Arte>python script.py
+** /!\ the destination directory /media/yann/DATA/Arte/ was not found  /!\ **
+---> setting the destination directory to the current directory C:\Users\zeihr\Fetch-Arte
+
+ Link 1 ) ***************************************************
+Downloading: L'art aborigène au pied des Alpes (2 min)
+[==================================================]
+
+ Link 2 ) ***************************************************
+Downloading: Paris se prépare aux taxis volants (3 min)
+[==================================================]
+
+ Link 3 ) ***************************************************
+Downloading: La minute vieille (2 min)
+[==================================================]
+
+ Link 4 ) ***************************************************
+Downloading: Innovations médicales (3 min)
+[==================================================]
+`
 
 ## Run the script with options
 

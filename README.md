@@ -73,6 +73,30 @@ Downloading: La minute vieille (2 min)
 Downloading: Innovations médicales (3 min)
 [==================================================]
 ```
+Check that the videos are in the folder with the command `dir` in Windows (`ls` on UNIX systems):
+
+```
+
+C:\Users\zeihr\Downloads\Fetch-Arte>dir
+ Volume in drive C is Windows
+ Volume Serial Number is 9E40-DEC9
+
+ Directory of C:\Users\zeihr\Downloads\Fetch-Arte
+
+07/30/2019  03:15 PM    <DIR>          .
+07/30/2019  03:15 PM    <DIR>          ..
+07/30/2019  03:03 PM               285 arte.txt
+07/30/2019  03:15 PM    <DIR>          Fetch-Arte-master
+07/30/2019  03:15 PM        23,033,620 Innovations_médicales.mp4
+07/30/2019  03:15 PM        16,738,939 L'art_aborigène_au_pied_des_Alpes.mp4
+07/30/2019  03:15 PM        12,147,214 La_minute_vieille.mp4
+07/30/2019  03:03 PM           420,638 notebook.ipynb
+07/30/2019  03:15 PM        18,535,123 Paris_se_prépare_aux_taxis_volants.mp4
+07/30/2019  03:03 PM             3,113 README.md
+07/30/2019  03:03 PM             6,185 script.py
+               8 File(s)     70,885,117 bytes
+               3 Dir(s)  10,399,690,752 bytes free
+```
 
 ## Run the script with options
 
@@ -90,4 +114,10 @@ N.B. to deal with prefered languages, maybe one should use the different APIs, n
 the different options can be seen by running:
 
 `python script.py --help`
+
+## More sophisticated/automated workflow using Web scraping 
+
+*not woking yet* 
+
+the jupyter notebook `notebook.ipynb` provides fragments of code to fetch the content of the Arte website using [BeautifulSoup](https://pypi.org/project/beautifulsoup4/) and thus automates the download (not needing to manually build the `arte.txt` file)
 

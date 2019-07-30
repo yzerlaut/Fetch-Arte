@@ -28,7 +28,7 @@ def reformat_props(data):
     if props['title'] == 'ARTE Reportage':
         props['title'] += ' '+data['subtitle']
 
-    props['reformated_title'] = props['title'].replace('  ', '_').replace(' ','_').replace('/', '|')
+    props['reformated_title'] = props['title'].replace('  ', '_').replace(' ','_').replace('/', '-')
 
     return props
 

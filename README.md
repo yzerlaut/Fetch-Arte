@@ -42,11 +42,11 @@ By default, you should just modify this file in the `Fetch-Arte` folder (remove 
 Let's say that instead of the default setting, you want that:
 1. the `arte.txt` file considered is a file on the desktop
 2. your destination folder is a usb drive located at `/media/yann/USB_STICK/`
-3. the video is downloaded in the highest quality available, i.e.: 1280x760
+3. the video is downloaded in the highest quality available, i.e.: 1280x720
 4. the prefered language is german instead of french
 
 you can run:
-`python script.py --txt_file /home/yann/Desktop/arte.txt --dest_folder /media/yann/USB_STICK/ --quality 1280x760 --prefered_languages VOA VA VOSTA`
+`python script.py --txt_file /home/yann/Desktop/arte.txt --dest_folder /media/yann/USB_STICK/ --quality 1280x720 --prefered_languages VOA VA VOSTA`
 
 N.B. to deal with prefered languages, maybe one should use the different APIs, not the french one, to be discussed...
 

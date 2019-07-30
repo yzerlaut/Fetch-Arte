@@ -6,7 +6,7 @@
 
 1. a recent version of python (see https://www.python.org/downloads/ )
 
-2. some python modules (isntalled with pip, see https://pip.pypa.io/en/stable/installing/):
+2. some python modules (installed with pip, see https://pip.pypa.io/en/stable/installing/):
 - "requests" (install it from the shell with pip: `pip install requests`)
 - "numpy" (install it from the shell with pip: `pip install numpy`)
 - "argparse" (install it from the shell with pip: `pip install argparse`)

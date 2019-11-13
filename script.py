@@ -35,14 +35,13 @@ def reformat_props(data):
 class video:
         
     def __init__(self, ID, args):
+        
         self.ID = ID
+        self.file_url = ''
         
         req = requests.get(args.api_link+self.ID)
-        if True:
-            self.data = req.json()['videoJsonPlayer']
-            self.props = reformat_props(self.data)
-        else:
-            self.props = {}
+        self.data = req.json()['videoJsonPlayer']
+        self.props = reformat_props(self.data)
                     
     def show_props(self):
         pprint.pprint(self.props)
@@ -57,20 +56,21 @@ class video:
                  folder='./',
                  chunk_size = 512*512):
         
-        file_url = ''
         for l in languages:
             cond = (self.props['language']==l) & (self.props['quality']==quality)
             if np.sum(cond)>0:
-                file_url = self.props['url'][cond][0]
+                self.file_url = self.props['url'][cond][0]
                 break
 
         # create response object 
-        r = requests.get(file_url, stream = True)
-        
+        r = requests.get(self.file_url, stream = True)
+
+        self.file_location = os.path.join(folder,
+                                          self.props['reformated_title']+args.extension)
+                     
         total_length = r.headers.get('content-length')
         # download started 
-        with open(os.path.join(folder,
-          self.props['reformated_title']+args.extension), 'wb') as f: 
+        with open(self.file_location, 'wb') as f: 
                     
             print('Downloading: %s (%.0f min)' % (self.props['title'],self.props['duration']))
             if total_length is None: # no content length header
@@ -85,6 +85,13 @@ class video:
                     sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50-done)) )    
                     sys.stdout.flush()                
         print('')
+
+    def check_success(self):
+        statinfo = os.stat(self.file_location)
+        print(statinfo.st_size)
+        print('')
+        print(self.file_url)
+        print('visit https://api.arte.tv/api/player/v1/config/fr/')
                     
 
 def already_there(filename, folder):
@@ -137,7 +144,8 @@ def run_script(args):
             except requests.exceptions.MissingSchema:
                 print(' /!\ %s not found with the API /!\ ' % vid.props['title'])
 
-
+        vid.check_success()
+        
 if __name__=='__main__':
     
     # First a nice documentation 

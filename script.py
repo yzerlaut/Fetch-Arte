@@ -28,13 +28,11 @@ def reformat_props(data):
     if props['title'] == 'ARTE Reportage':
         props['title'] += ' '+data['subtitle']
 
-    props['reformated_title'] = props['title'].replace('  ', '_').replace(' ','_').replace('/', '-')
+    props['reformated_title'] = props['title'].replace('  ', '_').replace(' ','_').replace('/', '-').replace('‘', '-').replace('’', '-').replace('?', '').replace('ê', 'e').replace(':', '_')
 
     return props
 
-    
 class video:
-    
         
     def __init__(self, ID, args):
         self.ID = ID
@@ -97,7 +95,26 @@ def already_there(filename, folder):
             print('---> File already present in:', os.path.join(dd[0],filename))
     return here
     
+def secure_folder(folderstring, basefolder):
 
+    full_folder = basefolder
+    for f in folderstring.split('/'):
+        full_folder = os.path.join(full_folder, f)
+        if not os.path.isdir(full_folder):
+            os.mkdir(full_folder)
+    return full_folder
+    
+def read_line_and_set_download_location(linestring):
+
+    if len(linestring.split(';'))==3:
+        # this means that : desired_folder;desired_name;url
+        return linestring.split(';')[1]
+    elif len(linestring.split(';'))==2:
+        # this means that : desired_folder;desired_name;url
+        return linestring.split(';')
+    else:
+        return '', linestring
+    
 
 def run_script(args):                    
     f = open(args.txt_file)
@@ -145,7 +162,7 @@ if __name__=='__main__':
     
     parser.add_argument('-df', "--dest_folder",
                         help="destination folder", type=str,
-                        default='/media/yann/DATA/Arte/')
+                        default='/media/yzerlaut/YANN/')
     
     parser.add_argument('-e', "--extension",
                         help="extension", type=str,

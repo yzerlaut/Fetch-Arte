@@ -11,6 +11,7 @@ def reformat_props(data):
              'quality':[],
              'mediaType':[],
              'url':[]}
+    
     if 'VDE' in data:
         props['summary'] = data['VDE']
     if 'V7T' in data:
@@ -31,14 +32,17 @@ def reformat_props(data):
     if props['title'] == 'ARTE Reportage':
         props['title'] = data['subtitle']+'_ARTE_Reportage'
     props['title'] = props['title'].replace('Xenius -', '')
-    
+
     props['reformated_title'] = props['title'].replace('  ', '_').replace(' ','_').replace('/', '-').replace('‘', '-').replace('’', '-').replace('?', '').replace('ê', 'e').replace(':', '_')
 
     return props
 
 class video:
         
-    def __init__(self, ID, args):
+    def __init__(self, ID, args,
+                 folder='./',
+                 subfolder=None,
+                 filename=None):
         
         self.ID = ID
         self.file_url, self.file_location = '', ''
@@ -46,7 +50,20 @@ class video:
         req = requests.get(args.api_link+self.ID)
         self.data = req.json()['videoJsonPlayer']
         self.props = reformat_props(self.data)
-                    
+
+        if subfolder in [None, '']:
+            folder = folder
+        else:
+            secure_folder(subfolder, folder)
+            folder = os.path.join(folder, subfolder)
+            
+        if filename in [None, '']:
+            self.file_location = os.path.join(folder,
+                                              self.props['reformated_title']+args.extension)
+        else:
+            self.file_location = os.path.join(folder,
+                                              filename+args.extension)
+
     def show_props(self):
         pprint.pprint(self.props)
         
@@ -57,7 +74,6 @@ class video:
     def download(self,
                  quality = '640x360',
                  languages = ['VOF', 'VF', 'VOSTF'],
-                 folder='./',
                  chunk_size = 512*512):
         
         for l in languages:
@@ -69,9 +85,6 @@ class video:
         # create response object 
         r = requests.get(self.file_url, stream = True)
 
-        self.file_location = os.path.join(folder,
-                                          self.props['reformated_title']+args.extension)
-                     
         total_length = r.headers.get('content-length')
         # download started 
         with open(self.file_location, 'wb') as f: 
@@ -133,22 +146,27 @@ def read_line_and_set_download_location(File):
 
 def run_script(args):                    
     f = open(args.txt_file)
-    IDS = []
-    desired_folder, desired_name, link = read_line_and_set_download_location(f)
+    IDS, SBFLDR, FNS = [], [], [] # Ids, Subfolders, Filenames
+    desired_name, desired_subfolder, link = read_line_and_set_download_location(f)
     while len(link)>2:
         IDS.append(link.split(args.root_link)[1][:12])
-        desired_folder, desired_name, link = read_line_and_set_download_location(f)
-    for ii, link in enumerate(IDS):
+        SBFLDR.append(desired_subfolder)
+        FNS.append(desired_name)
+        desired_name, desired_folder, link = read_line_and_set_download_location(f)
+        
+    for ii, link, subfolder, filename in zip(range(len(IDS)), IDS, SBFLDR, FNS):
         print('\n Link %s ) ***************************************************' % str(ii+1))
-        vid = video(link, args)
+        vid = video(link, args,
+                    folder=args.dest_folder,
+                    subfolder=subfolder,
+                    filename=filename)
         if not already_there(vid.props['reformated_title']+\
                              args.extension,
                              args.dest_folder):
             try:
                 vid.download(
                     quality = args.quality,
-                    languages = args.prefered_languages,
-                    folder=args.dest_folder)
+                    languages = args.prefered_languages)
             except requests.exceptions.MissingSchema:
                 print(' /!\ %s not found with the API /!\ ' % vid.props['title'])
 
@@ -178,7 +196,8 @@ if __name__=='__main__':
     
     parser.add_argument('-df', "--dest_folder",
                         help="destination folder", type=str,
-                        default='/media/yzerlaut/YANN/')
+                        # default='/media/yzerlaut/YANN/'
+                        default='./')
     
     parser.add_argument('-e', "--extension",
                         help="extension", type=str,

@@ -9,6 +9,7 @@ def reformat_props(data):
              'duration':float(data['videoDurationSeconds']/60.),
              'language':[],
              'quality':[],
+             'mediaType':[],
              'url':[]}
     if 'VDE' in data:
         props['summary'] = data['VDE']
@@ -20,14 +21,17 @@ def reformat_props(data):
         props['quality'].append(str(data['VSR'][key]['width'])+'x'+\
                                                     str(data['VSR'][key]['height']))    
         props['url'].append(data['VSR'][key]['url'])
+        props['mediaType'].append(data['VSR'][key]['mediaType'])
     
     props['language'] = np.array(props['language'])
     props['quality'] = np.array(props['quality'])
+    props['mediaType'] = np.array(props['mediaType'])
     props['url'] = np.array(props['url'])
     
     if props['title'] == 'ARTE Reportage':
-        props['title'] += ' '+data['subtitle']
-
+        props['title'] = data['subtitle']+'_ARTE_Reportage'
+    props['title'] = props['title'].replace('Xenius -', '')
+    
     props['reformated_title'] = props['title'].replace('  ', '_').replace(' ','_').replace('/', '-').replace('‘', '-').replace('’', '-').replace('?', '').replace('ê', 'e').replace(':', '_')
 
     return props
@@ -37,7 +41,7 @@ class video:
     def __init__(self, ID, args):
         
         self.ID = ID
-        self.file_url = ''
+        self.file_url, self.file_location = '', ''
         
         req = requests.get(args.api_link+self.ID)
         self.data = req.json()['videoJsonPlayer']
@@ -57,7 +61,7 @@ class video:
                  chunk_size = 512*512):
         
         for l in languages:
-            cond = (self.props['language']==l) & (self.props['quality']==quality)
+            cond = (self.props['language']==l) & (self.props['quality']==quality) & (self.props['mediaType']=='mp4')
             if np.sum(cond)>0:
                 self.file_url = self.props['url'][cond][0]
                 break
@@ -87,11 +91,13 @@ class video:
         print('')
 
     def check_success(self):
-        statinfo = os.stat(self.file_location)
-        print(statinfo.st_size)
-        print('')
-        print(self.file_url)
-        print('visit https://api.arte.tv/api/player/v1/config/fr/')
+        try:
+            statinfo = os.stat(self.file_location)
+            if statinfo.st_size<1e4:
+                print('/!\ Download as failed, visit:')
+                print('----->  visit https://api.arte.tv/api/player/v1/config/fr/'+self.ID)
+        except FileNotFoundError:
+            pass
                     
 
 def already_there(filename, folder):
@@ -111,25 +117,27 @@ def secure_folder(folderstring, basefolder):
             os.mkdir(full_folder)
     return full_folder
     
-def read_line_and_set_download_location(linestring):
+def read_line_and_set_download_location(File):
 
+    linestring = File.readline()
+    
     if len(linestring.split(';'))==3:
-        # this means that : desired_folder;desired_name;url
-        return linestring.split(';')[1]
-    elif len(linestring.split(';'))==2:
-        # this means that : desired_folder;desired_name;url
+        # this means that : desired_name;desired_folder;url
         return linestring.split(';')
-    else:
-        return '', linestring
+    elif len(linestring.split(';'))==2:
+        # this means that : desired_folder;url
+        return '', linestring.split(';')[0], linestring.split(';')[1]
+    else: # we have just the link
+        return '', '', linestring
     
 
 def run_script(args):                    
     f = open(args.txt_file)
     IDS = []
-    l = f.readline()
-    while len(l)>10:
-        IDS.append(l.split(args.root_link)[1][:12])
-        l = f.readline()
+    desired_folder, desired_name, link = read_line_and_set_download_location(f)
+    while len(link)>2:
+        IDS.append(link.split(args.root_link)[1][:12])
+        desired_folder, desired_name, link = read_line_and_set_download_location(f)
     for ii, link in enumerate(IDS):
         print('\n Link %s ) ***************************************************' % str(ii+1))
         vid = video(link, args)

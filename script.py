@@ -113,12 +113,15 @@ class video:
             pass
                     
 
-def already_there(filename, folder):
+def already_there(filename, args):
     here = False
-    for dd in os.walk(folder):
-        if os.path.isfile(os.path.join(dd[0],filename)):
-            here = True
-            print('---> File already present in:', os.path.join(dd[0],filename))
+    folders = args.archive_folder
+    folders.append(args.dest_folder)
+    for folder in folders:
+        for dd in os.walk(folder):
+            if os.path.isfile(os.path.join(dd[0],filename)):
+                here = True
+                print('---> File already present in:', os.path.join(dd[0],filename))
     return here
     
 def secure_folder(folderstring, basefolder):
@@ -152,7 +155,7 @@ def run_script(args):
         IDS.append(link.split(args.root_link)[1][:12])
         SBFLDR.append(desired_subfolder)
         FNS.append(desired_name)
-        desired_name, desired_folder, link = read_line_and_set_download_location(f)
+        desired_name, desired_subfolder, link = read_line_and_set_download_location(f)
         
     for ii, link, subfolder, filename in zip(range(len(IDS)), IDS, SBFLDR, FNS):
         print('\n Link %s ) ***************************************************' % str(ii+1))
@@ -161,8 +164,7 @@ def run_script(args):
                     subfolder=subfolder,
                     filename=filename)
         if not already_there(vid.props['reformated_title']+\
-                             args.extension,
-                             args.dest_folder):
+                             args.extension, args):
             try:
                 vid.download(
                     quality = args.quality,
@@ -198,6 +200,11 @@ if __name__=='__main__':
                         help="destination folder", type=str,
                         # default='/media/yzerlaut/YANN/'
                         default='./')
+
+    parser.add_argument('-af', "--archive_folder",
+                        help="archive folder to check if the file is not already present",
+                        type=str, nargs='*',
+                        default=['/media/yzerlaut/YANN_EXT4/VDtheque/'])
     
     parser.add_argument('-e', "--extension",
                         help="extension", type=str,

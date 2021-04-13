@@ -1,13 +1,10 @@
-# inside-no-9;https://www.arte.tv/fr/videos/RC-019724/inside-no-9/
-# fluide;https://www.arte.tv/fr/videos/RC-019870/fluide/
-# criminal-justice;https://www.arte.tv/fr/videos/RC-020171/criminal-justice/
-# 18h30;https://www.arte.tv/fr/videos/RC-019888/18h30/
-# america-first-le-bilan;https://www.arte.tv/fr/videos/094504-001-A/america-first-le-bilan-1-3/
-# america-first-le-bilan;https://www.arte.tv/fr/videos/094504-002-A/america-first-le-bilan-2-3/
-# america-first-le-bilan;https://www.arte.tv/fr/videos/094504-003-A/america-first-le-bilan-3-3/
-https://www.arte.tv/fr/videos/097496-000-A/l-hygiene-a-travers-les-ages/
-https://www.arte.tv/fr/videos/089055-000-A/le-pouvoir-des-caresses/
-https://www.arte.tv/fr/videos/098738-000-A/wonder-boys/
+inside-no-9;https://www.arte.tv/fr/videos/RC-019724/inside-no-9/
+fluide;https://www.arte.tv/fr/videos/RC-019870/fluide/
+criminal-justice;https://www.arte.tv/fr/videos/RC-020171/criminal-justice/
+18h30;https://www.arte.tv/fr/videos/RC-019888/18h30/
+america-first-le-bilan;https://www.arte.tv/fr/videos/094504-001-A/america-first-le-bilan-1-3/
+america-first-le-bilan;https://www.arte.tv/fr/videos/094504-002-A/america-first-le-bilan-2-3/
+america-first-le-bilan;https://www.arte.tv/fr/videos/094504-003-A/america-first-le-bilan-3-3/
 https://www.arte.tv/fr/videos/077827-000-A/le-souper/
 https://www.arte.tv/fr/videos/100155-000-A/plein-sud/
 https://www.arte.tv/fr/videos/020323-000-A/genealogies-d-un-crime/

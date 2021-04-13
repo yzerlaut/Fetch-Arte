@@ -3,9 +3,10 @@ from urllib.request import Request, urlopen
 import re
 
 page = 'https://www.arte.tv/fr/videos/RC-020451/house-of-cards/'
+page = 'https://www.arte.tv/fr/videos/RC-020753/baghdad-central/'
+page = 'https://www.arte.tv/fr/videos/RC-020692/bron/'
 req = Request(page)
 html_page = urlopen(req)
-
 
 soup = BeautifulSoup(html_page, "lxml")
 

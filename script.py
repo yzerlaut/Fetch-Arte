@@ -2,6 +2,8 @@ import requests
 import numpy as np
 import pprint, os, sys
 import argparse
+from bs4 import BeautifulSoup
+from urllib.request import Request, urlopen
 
 def reformat_props(data):
 
@@ -133,46 +135,90 @@ def secure_folder(folderstring, basefolder):
             os.mkdir(full_folder)
     return full_folder
     
-def read_line_and_set_download_location(File):
 
-    linestring = File.readline()
-    
-    if len(linestring.split(';'))==3:
-        # this means that : desired_name;desired_folder;url
-        return linestring.split(';')
-    elif len(linestring.split(';'))==2:
-        # this means that : desired_folder;url
-        return '', linestring.split(';')[0], linestring.split(';')[1]
-    else: # we have just the link
-        return '', '', linestring
-    
+class Download:
 
-def run_script(args):                    
-    f = open(args.txt_file)
-    IDS, SBFLDR, FNS = [], [], [] # Ids, Subfolders, Filenames
-    desired_name, desired_subfolder, link = read_line_and_set_download_location(f)
-    while len(link)>2:
-        IDS.append(link.split(args.root_link)[1][:12])
-        SBFLDR.append(desired_subfolder)
-        FNS.append(desired_name)
-        desired_name, desired_subfolder, link = read_line_and_set_download_location(f)
+    def __init__(self, args):
+
+        self.File = open(args.txt_file, 'r')
+        self.args = args
+        self.IDS, self.SBFLDR, self.FNS = [], [], [] # Ids, Subfolders, Filenames
+
+        self.run()
+
+    def read_line_and_set_download_location(self):
+
+        if len(self.linestring.split(';'))==3:
+            # this means that : desired_name;desired_folder;url
+            return self.linestring.split(';')
+        elif len(self.linestring.split(';'))==2:
+            # this means that : desired_folder;url
+            return '', self.linestring.split(';')[0], self.linestring.split(';')[1]
+        else: # we have just the link
+            return '', '', self.linestring
+
+    def extract_list_of_links(self, link):
+
+        req = Request(link)
+        html_page = urlopen(req)
+
+        soup = BeautifulSoup(html_page, "lxml")
+
+        links = []
+        for Link in soup.findAll('a'):
+            l = Link.get('href')
+            if (link.split('/')[-2] in l) and ('RC-' not in l):
+                links.append(l)
+        return links
+
+    def add_download_instructions(self, subfolder=None):
+        self.IDS.append(self.link.split(self.args.root_link)[1][:12])
+        if subfolder is None:
+            self.SBFLDR.append(self.desired_subfolder)
+        else:
+            self.SBFLDR.append(subfolder)
+        self.FNS.append(self.desired_name)
         
-    for ii, link, subfolder, filename in zip(range(len(IDS)), IDS, SBFLDR, FNS):
-        print('\n Link %s ) ***************************************************' % str(ii+1))
-        vid = video(link, args,
-                    folder=args.dest_folder,
-                    subfolder=subfolder,
-                    filename=filename)
-        if not already_there(vid.props['reformated_title']+\
-                             args.extension, args):
-            try:
-                vid.download(
-                    quality = args.quality,
-                    languages = args.prefered_languages)
-            except requests.exceptions.MissingSchema:
-                print(' /!\ %s not found with the API /!\ ' % vid.props['title'])
+    def run(self):
+        
+        self.linestring = self.File.readline()
+        while len(self.linestring)>0:
+            if self.linestring[0]!='#': # not commented
+                self.desired_name, self.desired_subfolder, self.link = self.read_line_and_set_download_location()
+                if 'RC-' in self.linestring:
+                    links = self.extract_list_of_links(self.link)
+                    for self.linestring in links:
+                        _, _, self.link = self.read_line_and_set_download_location()
+                        subfolder = self.desired_subfolder
+                        for i in range(1, 20):
+                            if ('saison-%i'%i in self.link):
+                                subfolder = os.path.join(self.desired_subfolder, 'saison-%i'%i)
+                        self.add_download_instructions(subfolder=subfolder)
+                else:
+                    self.add_download_instructions()
+            self.linestring = self.File.readline()
 
-        vid.check_success()
+        for ii, link, subfolder, filename in zip(range(len(self.IDS)), self.IDS, self.SBFLDR, self.FNS):
+            print('\n Link %s ) ***************************************************' % str(ii+1))
+            vid = video(link, args,
+                        folder=args.dest_folder,
+                        subfolder=subfolder,
+                        filename=filename)
+            if not already_there(vid.props['reformated_title']+\
+                                 args.extension, args):
+                try:
+                    vid.download(
+                        quality = args.quality,
+                        languages = args.prefered_languages)
+                except requests.exceptions.MissingSchema:
+                    print(' /!\ %s not found with the API /!\ ' % vid.props['title'])
+            vid.check_success()
+        
+    def close(self):
+        self.File.close()
+        
+    
+
         
 if __name__=='__main__':
     
@@ -233,5 +279,6 @@ if __name__=='__main__':
         print('** /!\ the destination directory %s was not found  /!\ **' % args.dest_folder )
         args.dest_folder = os.path.abspath(os.path.curdir)
         print('---> setting the destination directory to the current directory %s' % args.dest_folder)
-        
-    run_script(args)
+
+    Download(args)
+    # run_script(args)

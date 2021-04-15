@@ -182,7 +182,7 @@ class Download:
     def run(self):
         
         self.linestring = self.File.readline()
-        while len(self.linestring)>0:
+        while len(self.linestring)>1:
             if self.linestring[0]!='#': # not commented
                 self.desired_name, self.desired_subfolder, self.link = self.read_line_and_set_download_location()
                 if 'RC-' in self.linestring:
@@ -249,7 +249,8 @@ if __name__=='__main__':
     parser.add_argument('-df', "--dest_folder",
                         help="destination folder", type=str,
                         # default='/media/yzerlaut/YANN/'
-                        default='./')
+                        # default='./',
+                        default='/home/yann/Videos/')
 
     parser.add_argument('-af', "--archive_folder",
                         help="archive folder to check if the file is not already present",

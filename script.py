@@ -167,7 +167,7 @@ class Download:
         links = []
         for Link in soup.findAll('a'):
             l = Link.get('href')
-            if (link.split('/')[-2] in l) and ('RC-' not in l):
+            if (link.split('/')[-2] in l) and ('RC-' not in l) and ('boutique' not in l):
                 links.append(l)
         return links
 
@@ -193,7 +193,11 @@ class Download:
                         for i in range(1, 20):
                             if ('saison-%i'%i in self.link):
                                 subfolder = os.path.join(self.desired_subfolder, 'saison-%i'%i)
-                        self.add_download_instructions(subfolder=subfolder)
+                        try:
+                            self.add_download_instructions(subfolder=subfolder)
+                        except BaseException as be:
+                            print(be)
+                            print(' /!\ Pb with link "%s" ' % self.linestring)
                 else:
                     self.add_download_instructions()
             self.linestring = self.File.readline()

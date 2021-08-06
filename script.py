@@ -9,7 +9,7 @@ def reformat_props(data):
 
     props = {'title':data['VTI'],
              'duration':float(data['videoDurationSeconds']/60.),
-             'language':[],
+             'language':[], 'language_short':[],
              'quality':[],
              'mediaType':[],
              'url':[]}
@@ -52,7 +52,10 @@ class video:
         req = requests.get(args.api_link+self.ID)
         self.data = req.json()['videoJsonPlayer']
         self.props = reformat_props(self.data)
-
+        
+        if args.debug:
+            print(self.props)
+        
         if subfolder in [None, '']:
             folder = folder
         else:
@@ -75,14 +78,15 @@ class video:
     
     def download(self,
                  quality = '640x360',
-                 languages = ['VOF', 'VF', 'VOSTF'],
+                 languages = ['VOSTF', 'VOF', 'VF'],
                  chunk_size = 512*512):
         
         for l in languages:
+            # looking for the first match
             cond = (self.props['language']==l) & (self.props['quality']==quality) & (self.props['mediaType']=='mp4')
             if np.sum(cond)>0:
                 self.file_url = self.props['url'][cond][0]
-                break
+                break # the loop over language
 
         # create response object 
         r = requests.get(self.file_url, stream = True)
@@ -185,6 +189,7 @@ class Download:
     def run(self):
         
         self.linestring = self.File.readline()
+        
         while len(self.linestring)>1:
             if self.linestring[0]!='#': # not commented
                 self.desired_name, self.desired_subfolder, self.link = self.read_line_and_set_download_location()
@@ -216,7 +221,7 @@ class Download:
                         subfolder=subfolder,
                         filename=filename)
             if not already_there(vid.props['reformated_title']+\
-                                 args.extension, args):
+                                 args.extension, args) and not args.debug:
                 try:
                     vid.download(
                         quality = args.quality,
@@ -252,6 +257,10 @@ if __name__=='__main__':
     parser.add_argument('-al', "--api_link",
                         help="API link of ARTE videos", type=str,
                         default='https://api.arte.tv/api/player/v1/config/fr/')
+
+    parser.add_argument('-adl', "--api_de_link",
+                        help="API link of ARTE videos / German version", type=str,
+                        default='https://api.arte.tv/api/player/v1/config/de/')
     
     parser.add_argument('-df', "--dest_folder",
                         help="destination folder", type=str,
@@ -279,10 +288,12 @@ if __name__=='__main__':
     help="""
     default language of the videos
     in the order of preferences, 
-    e.g. for a french speaker prefering french only when original language was french,
-    pick: ['VOF', 'VF', 'VOSTF']""", nargs='+',
+    e.g. for a french speaker prefering french only when original language was french otherwise vostfr,
+    pick: ['VOSTF', 'VOF', 'VF']""", nargs='+',
                         type=str,
-                        default=['VOF', 'VF', 'VOSTF'])
+                        default=['VOSTF', 'VOF', 'VF'])
+    
+    parser.add_argument('--debug', action="store_true", help="prevent downloading")
     
     args = parser.parse_args()
 

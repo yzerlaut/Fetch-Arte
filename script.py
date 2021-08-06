@@ -171,13 +171,16 @@ class Download:
                 links.append(l)
         return links
 
-    def add_download_instructions(self, subfolder=None):
+    def add_download_instructions(self, subfolder=None, desired_name=None):
         self.IDS.append(self.link.split(self.args.root_link)[1][:12])
         if subfolder is None:
             self.SBFLDR.append(self.desired_subfolder)
         else:
             self.SBFLDR.append(subfolder)
-        self.FNS.append(self.desired_name)
+        if desired_name is None:
+            self.FNS.append(self.desired_name)
+        else:
+            self.FNS.append(desired_name)
         
     def run(self):
         
@@ -187,14 +190,18 @@ class Download:
                 self.desired_name, self.desired_subfolder, self.link = self.read_line_and_set_download_location()
                 if 'RC-' in self.linestring:
                     links = self.extract_list_of_links(self.link)
-                    for self.linestring in links:
+                    for il, self.linestring in enumerate(links):
                         _, _, self.link = self.read_line_and_set_download_location()
-                        subfolder = self.desired_subfolder
+
+                        subfolder, desired_name = self.desired_subfolder, self.desired_name
                         for i in range(1, 20):
                             if ('saison-%i'%i in self.link):
                                 subfolder = os.path.join(self.desired_subfolder, 'saison-%i'%i)
+                        if (self.desired_name=='') and (subfolder!=''):
+                            desired_name = '%i' % (il+1)
+                            
                         try:
-                            self.add_download_instructions(subfolder=subfolder)
+                            self.add_download_instructions(subfolder=subfolder, desired_name=desired_name)
                         except BaseException as be:
                             print(be)
                             print(' /!\ Pb with link "%s" ' % self.linestring)

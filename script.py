@@ -7,28 +7,18 @@ from urllib.request import Request, urlopen
 
 def reformat_props(data):
 
-    props = {'title':data['VTI'],
-             'duration':float(data['videoDurationSeconds']/60.),
+    props = {'title':data['metadata']['title'],
+             'duration':float(data['metadata']['duration']['seconds'])/60.,
+             'description':data['metadata']['description'],
              'language':[], 'language_short':[],
-             'quality':[],
-             'mediaType':[],
              'url':[]}
     
-    if 'VDE' in data:
-        props['summary'] = data['VDE']
-    if 'V7T' in data:
-        props['synopsis'] = data['V7T']
              
-    for key in data['VSR']:
-        props['language'].append(data['VSR'][key]['versionShortLibelle'])
-        props['quality'].append(str(data['VSR'][key]['width'])+'x'+\
-                                                    str(data['VSR'][key]['height']))    
-        props['url'].append(data['VSR'][key]['url'])
-        props['mediaType'].append(data['VSR'][key]['mediaType'])
+    for stream in data['streams']:
+        props['language'].append(stream['versions'][0]['shortLabel'])
+        props['url'].append(stream['url'])
     
     props['language'] = np.array(props['language'])
-    props['quality'] = np.array(props['quality'])
-    props['mediaType'] = np.array(props['mediaType'])
     props['url'] = np.array(props['url'])
     
     if props['title'] == 'ARTE Reportage':
@@ -48,11 +38,18 @@ class video:
         
         self.ID = ID
         self.file_url, self.file_location = '', ''
-        print(args.api_link+self.ID)        
         req = requests.get(args.api_link+self.ID)
-        pprint.pprint(req.json())
-        self.data = req.json()['videoJsonPlayer']
-        self.props = reformat_props(self.data)
+        if args.debug:
+            pprint.pprint(req.json()['data'])
+        try:
+            self.data = req.json()['data']['attributes']
+            self.props = reformat_props(self.data)
+        except BaseException as be:
+            print(be)
+            pprint.pprint(req.json())
+            print('')
+            print(' /!\ video metadata couldnt be extracted from the webpage  /!\ ')
+            print('')
         
         if args.debug:
             print(self.props)
@@ -73,49 +70,58 @@ class video:
     def show_props(self):
         pprint.pprint(self.props)
         
-    def pick_quality_and_languages(self):
-        self.quality = quality
-        self.languages = languages
-    
-    def download(self,
-                 quality = '640x360',
-                 languages = ['VOSTF', 'VOF', 'VF'],
-                 chunk_size = 512*512):
-        
+    def pick_url_based_on_language(self,
+                                   languages = ['VOSTF', 'VOF', 'VF']):
+
+        self.file_url = None
+
         for l in languages:
             # looking for the first match
-            cond = (self.props['language']==l) & (self.props['quality']==quality) & (self.props['mediaType']=='mp4')
+            cond = (self.props['language']==l)
             if np.sum(cond)>0:
                 self.file_url = self.props['url'][cond][0]
                 break # the loop over language
 
-        # create response object 
-        r = requests.get(self.file_url, stream = True)
+    
+    def download(self,
+                 languages = ['VOSTF', 'VOF', 'VF'],
+                 chunk_size = 512*512):
+       
+        self.pick_url_based_on_language(languages)
 
-        total_length = r.headers.get('content-length')
-        # download started 
-        with open(self.file_location, 'wb') as f: 
+
+        cmd = 'ffmpeg -i %s -c copy -map 0:1 -bsf:a aac_adtstoasc %s' % (self.file_url, self.file_location)
+        print(cmd)
+        os.system(cmd)
+        
+        # # create response object 
+        # r = requests.get(self.file_url, stream = True)
+
+        # total_length = r.headers.get('content-length')
+
+        # # download started 
+        # with open(self.file_location, 'wb') as f: 
                     
-            print('Downloading: %s (%.0f min)' % (self.props['title'],self.props['duration']))
-            if total_length is None: # no content length header
-                f.write(r.content)
-            else:
-                dl = 0
-                total_length = int(total_length)
-                for data in r.iter_content(chunk_size=chunk_size):
-                    dl += len(data)
-                    f.write(data)
-                    done = int(50 * dl / total_length)
-                    sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50-done)) )    
-                    sys.stdout.flush()                
-        print('')
+            # print('Downloading: %s (%.0f min)' % (self.props['title'],self.props['duration']))
+            # if total_length is None: # no content length header
+                # f.write(r.content)
+            # else:
+                # dl = 0
+                # total_length = int(total_length)
+                # for data in r.iter_content(chunk_size=chunk_size):
+                    # dl += len(data)
+                    # f.write(data)
+                    # done = int(50 * dl / total_length)
+                    # sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50-done)) )    
+                    # sys.stdout.flush()                
+        # print('')
 
     def check_success(self):
         try:
             statinfo = os.stat(self.file_location)
             if statinfo.st_size<1e4:
-                print('/!\ Download as failed, visit:')
-                print('----->  visit https://api.arte.tv/api/player/v1/config/fr/'+self.ID)
+                print('/!\ Download failed, visit:')
+                # print('----->  visit https://api.arte.tv/api/player/v1/config/fr/'+self.ID)
         except FileNotFoundError:
             pass
                     
@@ -225,7 +231,7 @@ class Download:
                                  args.extension, args) and not args.debug:
                 try:
                     vid.download(
-                        quality = args.quality,
+                        # quality = args.quality,
                         languages = args.prefered_languages)
                 except requests.exceptions.MissingSchema:
                     print(' /!\ %s not found with the API /!\ ' % vid.props['title'])

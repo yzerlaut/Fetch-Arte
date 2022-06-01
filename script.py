@@ -48,8 +48,9 @@ class video:
         
         self.ID = ID
         self.file_url, self.file_location = '', ''
-        
+        print(args.api_link+self.ID)        
         req = requests.get(args.api_link+self.ID)
+        pprint.pprint(req.json())
         self.data = req.json()['videoJsonPlayer']
         self.props = reformat_props(self.data)
         
@@ -256,11 +257,11 @@ if __name__=='__main__':
 
     parser.add_argument('-al', "--api_link",
                         help="API link of ARTE videos", type=str,
-                        default='https://api.arte.tv/api/player/v1/config/fr/')
+                        default='https://api.arte.tv/api/player/v2/config/fr/')
 
     parser.add_argument('-adl', "--api_de_link",
                         help="API link of ARTE videos / German version", type=str,
-                        default='https://api.arte.tv/api/player/v1/config/de/')
+                        default='https://api.arte.tv/api/player/v2/config/de/')
     
     parser.add_argument('-df', "--dest_folder",
                         help="destination folder", type=str,

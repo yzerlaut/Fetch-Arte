@@ -89,32 +89,15 @@ class video:
        
         self.pick_url_based_on_language(languages)
 
-
-        cmd = 'ffmpeg -i %s -c copy -map 0:1 -bsf:a aac_adtstoasc %s' % (self.file_url, self.file_location)
+        cmd = 'ffmpeg -i %s -c copy -bsf:a aac_adtstoasc %s' % (self.file_url, self.file_location)
         print(cmd)
         os.system(cmd)
+
+        # if 'arteptwebvod' in self.file_url:
+            # os.system(cmd)
+        # else:
+            # print('video stream currently not supported')
         
-        # # create response object 
-        # r = requests.get(self.file_url, stream = True)
-
-        # total_length = r.headers.get('content-length')
-
-        # # download started 
-        # with open(self.file_location, 'wb') as f: 
-                    
-            # print('Downloading: %s (%.0f min)' % (self.props['title'],self.props['duration']))
-            # if total_length is None: # no content length header
-                # f.write(r.content)
-            # else:
-                # dl = 0
-                # total_length = int(total_length)
-                # for data in r.iter_content(chunk_size=chunk_size):
-                    # dl += len(data)
-                    # f.write(data)
-                    # done = int(50 * dl / total_length)
-                    # sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50-done)) )    
-                    # sys.stdout.flush()                
-        # print('')
 
     def check_success(self):
         try:

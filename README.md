@@ -1,8 +1,8 @@
-#+title: Fetch Arte videos
+# Fetch Arte videos
 
-*Download the videos in the `mp4` format from a list of links from the ARTE website*
+> *Download the videos in the `mp4` format from a list of links from the ARTE website*
 
-** Requirements
+## Requirements
 
 1. a recent version of python (see https://www.python.org/downloads/ ). N.B. Most systems come with a python version pre-installed, check it by running the command: `python --version` 
 
@@ -11,7 +11,7 @@
 - "numpy" (install it from the shell with pip: `pip install numpy`)
 - "argparse" (install it from the shell with pip: `pip install argparse`)
 
-** Installation
+## Installation
 
 Two options:
 
@@ -29,7 +29,7 @@ Example of the "arte.txt" file content, see the file: https://github.com/yzerlau
 
 By default, you should just modify this file in the `Fetch-Arte` folder (remove the current links and put the one you want).
 
-** Run the script
+## Run the script
 
 1. open the shell (command line interface)
 
@@ -52,7 +52,7 @@ C:\Users\zeihr\Downloads\Fetch-Arte>
 
 the script runs and downloads the videos one by one to the destination folder (the `Fetch-Arte/` directory)
 
-#+BEGIN_SRC bash
+```
 C:\Users\zeihr\Downloads\Fetch-Arte>python script.py
  ** /!\ the destination directory /media/yann/DATA/Arte/ was not found  /!\ **
 
@@ -73,11 +73,11 @@ Downloading: La minute vieille (2 min)
  Link 4 ) ***************************************************
 Downloading: Innovations médicales (3 min)
 [==================================================]
-#+END_SRC
+```
 
 Check that the videos are in the folder with the command `dir` in Windows (`ls` on UNIX systems):
 
-#+BEGIN_SRC bash
+```
 C:\Users\zeihr\Downloads\Fetch-Arte>dir
  Volume in drive C is Windows
  Volume Serial Number is 9E40-DEC9
@@ -97,10 +97,10 @@ C:\Users\zeihr\Downloads\Fetch-Arte>dir
 07/30/2019  03:03 PM             6,185 script.py
                8 File(s)     70,885,117 bytes
                3 Dir(s)  10,399,690,752 bytes free
-#+END_SRC
+```
 
 
-** Run the script with options
+## Run the script with options
 
 Let's say that instead of the default setting, you want that:
 1. the `arte.txt` file considered is a file on the desktop
@@ -109,9 +109,9 @@ Let's say that instead of the default setting, you want that:
 4. the prefered language is german instead of french
 
 you can run:
-#+BEGIN_SRC bash
+```
 python script.py --txt_file /home/yann/Desktop/arte.txt --dest_folder /media/yann/USB_STICK/ --quality 1280x720 --prefered_languages VOA VA VOSTA
-#+END_SRC
+```
 
 N.B. to deal with prefered languages, maybe one should use the different APIs, not the french one, to be discussed...
 
@@ -119,12 +119,12 @@ the different options can be seen by running:
 
 `python script.py --help`
 
-** More sophisticated/automated workflow using Web scraping 
+## More sophisticated/automated workflow using Web scraping 
 
 *not woking yet* 
 
 *but the jupyter notebook `notebook.ipynb` provides fragments of code to fetch the content of the Arte website using [[https://pypi.org/project/beautifulsoup4/][BeautifulSoup]] and thus automates the download (not needing to manually build the `arte.txt` file)*
 
-** Organize your collection
+## Organize your collection
 
-
+to do [...]

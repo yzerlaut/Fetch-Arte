@@ -1,9 +1,12 @@
+import os, sys
 import requests
 import numpy as np
-import pprint, os, sys
-import argparse
-from bs4 import BeautifulSoup
+import argparse, pprint
 from urllib.request import Request, urlopen
+
+import sys
+sys.path.append('../yt-dlp')
+import yt_dlp
 
 def reformat_props(data):
 
@@ -39,20 +42,24 @@ class video:
         self.ID = ID
         self.file_url, self.file_location = '', ''
         req = requests.get(args.api_link+self.ID)
+
         if args.debug:
             pprint.pprint(req.json()['data'])
         try:
             self.data = req.json()['data']['attributes']
             self.props = reformat_props(self.data)
+            self.props['original_link'] = ID
         except BaseException as be:
             print(be)
             pprint.pprint(req.json())
             print('')
             print(' /!\ video metadata couldnt be extracted from the webpage  /!\ ')
             print('')
+            self.props = {'original_link':ID,
+                    'reformated_title':'test.mp4'}
         
         if args.debug:
-            print(self.props)
+            pprint.pprint(self.props)
         
         if subfolder in [None, '']:
             folder = folder
@@ -60,12 +67,12 @@ class video:
             secure_folder(subfolder, folder)
             folder = os.path.join(folder, subfolder)
             
-        if filename in [None, '']:
-            self.file_location = os.path.join(folder,
-                                              self.props['reformated_title']+args.extension)
-        else:
-            self.file_location = os.path.join(folder,
-                                              filename+args.extension)
+        # if filename in [None, '']:
+            # self.file_location = os.path.join(folder,
+                                              # self.props['reformated_title']+args.extension)
+        # else:
+            # self.file_location = os.path.join(folder,
+                                              # filename+args.extension)
 
     def show_props(self):
         pprint.pprint(self.props)
@@ -85,14 +92,18 @@ class video:
     
     def download(self,
                  languages = ['VOSTF', 'VOF', 'VF'],
+                 quality='720p',
                  chunk_size = 512*512):
        
-        self.pick_url_based_on_language(languages)
+        # no just relying on yt-dlp
+        sys.argv = ['', self.props['original_url'], 
+                    '--output', '"%s"' % self.props['reformated_title']]
+        yt_dlp.main()
 
-        cmd = 'ffmpeg -i %s -c copy -bsf:a aac_adtstoasc %s' % (self.file_url, self.file_location)
-        print(cmd)
-        os.system(cmd)
-
+        # self.pick_url_based_on_language(languages)
+        # cmd = 'ffmpeg -i %s -c copy -bsf:a aac_adtstoasc %s' % (self.file_url, self.file_location)
+        # print(cmd)
+        # os.system(cmd)
         # if 'arteptwebvod' in self.file_url:
             # os.system(cmd)
         # else:
@@ -138,7 +149,10 @@ class Download:
         self.args = args
         self.IDS, self.SBFLDR, self.FNS = [], [], [] # Ids, Subfolders, Filenames
 
-        self.run()
+        if args.link!='':
+            self.single_run(args)
+        else:
+            self.list_run()
 
     def read_line_and_set_download_location(self):
 
@@ -176,7 +190,28 @@ class Download:
         else:
             self.FNS.append(desired_name)
         
-    def run(self):
+    def single_run(self, args,
+                   subfolder='', filename=None, ii=0):
+        
+        print('\n Link %i ) ***************************************************' % (ii+1))
+
+        vid = video(args.link, args,
+                    folder=args.dest_folder,
+                    subfolder=subfolder,
+                    filename=filename)
+        vid.props['original_url'] = args.link
+        vid.download()
+        # if not already_there(vid.props['reformated_title']+\
+                             # args.extension, args) and not args.debug:
+            # try:
+                # vid.download(
+                    # quality = args.quality,
+                    # languages = args.prefered_languages)
+            # except requests.exceptions.MissingSchema:
+                # print(' /!\ %s not found with the API /!\ ' % vid.props['title'])
+        # vid.check_success()
+
+    def list_run(self):
         
         self.linestring = self.File.readline()
         
@@ -214,7 +249,7 @@ class Download:
                                  args.extension, args) and not args.debug:
                 try:
                     vid.download(
-                        # quality = args.quality,
+                        quality = args.quality,
                         languages = args.prefered_languages)
                 except requests.exceptions.MissingSchema:
                     print(' /!\ %s not found with the API /!\ ' % vid.props['title'])
@@ -236,6 +271,10 @@ if __name__=='__main__':
      """
     ,formatter_class=argparse.RawTextHelpFormatter)
 
+    parser.add_argument('-l', "--link",
+                        help="",
+                        default='')
+
     parser.add_argument('-f', "--txt_file",
                         help="filename of files with the ARTE links",
                         default='arte.txt')
@@ -254,25 +293,19 @@ if __name__=='__main__':
     
     parser.add_argument('-df', "--dest_folder",
                         help="destination folder", type=str,
-                        # default='/media/yzerlaut/YANN/'
-                        # default='./',
-                        default='/home/yann/Videos/')
+                        default=os.path.join(os.path.expanduser('~'), 'Videos'))
 
     parser.add_argument('-af', "--archive_folder",
                         help="archive folder to check if the file is not already present",
                         type=str, nargs='*',
                         default=['/media/yzerlaut/YANN_EXT4/VDtheque/'])
     
-    parser.add_argument('-e', "--extension",
-                        help="extension", type=str,
-                        default='.mp4')
-
     parser.add_argument('-q', "--quality",
-    help="""
-    quality of the videos in pixels, either:
-    384x216, 640x360, 720x406, 1280x720
-    """,
-                        type=str, default='640x360')
+                        help="""
+                        quality of the videos in pixels, either:
+                        ..., 640p, 720p, 1280p
+                        """,
+                        type=str, default='720p')
 
     parser.add_argument('-pl', "--prefered_languages",\
     help="""
@@ -294,4 +327,4 @@ if __name__=='__main__':
         print('---> setting the destination directory to the current directory %s' % args.dest_folder)
 
     Download(args)
-    # run_script(args)
+    

@@ -1,6 +1,6 @@
-# Fetch Arte videos
+# Fetch Arte
 
-> *Download the videos in the `mp4` format from a list of links from the ARTE website*
+> *Download `mp4` videos from a list of links from the ARTE website*
 
 ## Requirements
 

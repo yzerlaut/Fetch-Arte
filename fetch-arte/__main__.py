@@ -4,8 +4,6 @@ import numpy as np
 import argparse, pprint
 from urllib.request import Request, urlopen
 
-import sys
-sys.path.append('../yt-dlp')
 import yt_dlp
 
 def reformat_props(data):
@@ -44,7 +42,7 @@ class video:
         req = requests.get(args.api_link+self.ID)
 
         if args.debug:
-            pprint.pprint(req.json()['data'])
+            pprint.pprint(req.json())
         try:
             self.data = req.json()['data']['attributes']
             self.props = reformat_props(self.data)
@@ -145,13 +143,13 @@ class Download:
 
     def __init__(self, args):
 
-        self.File = open(args.txt_file, 'r')
         self.args = args
         self.IDS, self.SBFLDR, self.FNS = [], [], [] # Ids, Subfolders, Filenames
 
         if args.link!='':
             self.single_run(args)
         else:
+            self.File = open(args.txt_file, 'r')
             self.list_run()
 
     def read_line_and_set_download_location(self):
@@ -194,22 +192,15 @@ class Download:
                    subfolder='', filename=None, ii=0):
         
         print('\n Link %i ) ***************************************************' % (ii+1))
+        print('    ', args.link)
 
         vid = video(args.link, args,
                     folder=args.dest_folder,
                     subfolder=subfolder,
                     filename=filename)
+
         vid.props['original_url'] = args.link
         vid.download()
-        # if not already_there(vid.props['reformated_title']+\
-                             # args.extension, args) and not args.debug:
-            # try:
-                # vid.download(
-                    # quality = args.quality,
-                    # languages = args.prefered_languages)
-            # except requests.exceptions.MissingSchema:
-                # print(' /!\ %s not found with the API /!\ ' % vid.props['title'])
-        # vid.check_success()
 
     def list_run(self):
         
@@ -217,6 +208,7 @@ class Download:
         
         while len(self.linestring)>1:
             if self.linestring[0]!='#': # not commented
+                print(self.linestring)
                 self.desired_name, self.desired_subfolder, self.link = self.read_line_and_set_download_location()
                 if 'RC-' in self.linestring:
                     links = self.extract_list_of_links(self.link)
@@ -285,7 +277,8 @@ if __name__=='__main__':
 
     parser.add_argument('-al', "--api_link",
                         help="API link of ARTE videos", type=str,
-                        default='https://api.arte.tv/api/player/v2/config/fr/')
+                        default='https://api.arte.tv/api/player/v2/config/fr/LIVE')
+                        #default='https://api.arte.tv/api/player/v2/config/fr/')
 
     parser.add_argument('-adl', "--api_de_link",
                         help="API link of ARTE videos / German version", type=str,

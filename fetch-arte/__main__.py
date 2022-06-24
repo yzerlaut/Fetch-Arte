@@ -94,8 +94,9 @@ class video:
                  chunk_size = 512*512):
        
         # no just relying on yt-dlp
-        sys.argv = ['', self.props['original_url'], 
-                    '--output', '"%s"' % self.props['reformated_title']]
+        #sys.argv = ['', self.props['original_url'], 
+        #            '--output', '"%s"' % self.props['reformated_title']]
+        sys.argv = ['', self.props['original_url']]
         yt_dlp.main()
 
         # self.pick_url_based_on_language(languages)
@@ -210,42 +211,8 @@ class Download:
             if self.linestring[0]!='#': # not commented
                 print(self.linestring)
                 self.desired_name, self.desired_subfolder, self.link = self.read_line_and_set_download_location()
-                if 'RC-' in self.linestring:
-                    links = self.extract_list_of_links(self.link)
-                    for il, self.linestring in enumerate(links):
-                        _, _, self.link = self.read_line_and_set_download_location()
-
-                        subfolder, desired_name = self.desired_subfolder, self.desired_name
-                        for i in range(1, 20):
-                            if ('saison-%i'%i in self.link):
-                                subfolder = os.path.join(self.desired_subfolder, 'saison-%i'%i)
-                        if (self.desired_name=='') and (subfolder!=''):
-                            desired_name = '%i' % (il+1)
-                            
-                        try:
-                            self.add_download_instructions(subfolder=subfolder, desired_name=desired_name)
-                        except BaseException as be:
-                            print(be)
-                            print(' /!\ Pb with link "%s" ' % self.linestring)
-                else:
-                    self.add_download_instructions()
-            self.linestring = self.File.readline()
-
-        for ii, link, subfolder, filename in zip(range(len(self.IDS)), self.IDS, self.SBFLDR, self.FNS):
-            print('\n Link %s ) ***************************************************' % str(ii+1))
-            vid = video(link, args,
-                        folder=args.dest_folder,
-                        subfolder=subfolder,
-                        filename=filename)
-            if not already_there(vid.props['reformated_title']+\
-                                 args.extension, args) and not args.debug:
-                try:
-                    vid.download(
-                        quality = args.quality,
-                        languages = args.prefered_languages)
-                except requests.exceptions.MissingSchema:
-                    print(' /!\ %s not found with the API /!\ ' % vid.props['title'])
-            vid.check_success()
+                args.link = self.linestring
+                self.single_run(args)
         
     def close(self):
         self.File.close()

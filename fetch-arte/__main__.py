@@ -188,6 +188,9 @@ if __name__=='__main__':
     if args.low_quality:
         args.quality = '384x216'
 
+    if not os.path.isdir(args.dest_folder):
+        args.dest_folder = ''
+
     # check if destination folder exists
     if not os.path.isdir(args.dest_folder):
         print('** /!\ the destination directory %s was not found  /!\ **' % args.dest_folder )

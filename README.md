@@ -2,129 +2,53 @@
 
 > *Download `mp4` videos from a list of links from the ARTE website*
 
-## Requirements
+## Installation & Setup
 
-1. a recent version of python (see https://www.python.org/downloads/ ). N.B. Most systems come with a python version pre-installed, check it by running the command: `python --version` 
+- clone the git repository:
+    ```
+    git clone https://github.com/yzerlaut/Fetch-Arte --recurse-submodules
+    ```
 
-2. some python modules (installed with pip, see https://pip.pypa.io/en/stable/installing/):
-- "requests" (install it from the shell with pip: `pip install requests`)
-- "numpy" (install it from the shell with pip: `pip install numpy`)
-- "argparse" (install it from the shell with pip: `pip install argparse`)
+- install dependencies (have a look at the required modules in in the [./setup.py](setup.py) file)
+    ```
+    cd Fetch-Arte # or chdir in Windows
+    pip install .
+    ```
 
-## Installation
+- *Build your "arte.txt" file*
 
-Two options:
+    Just copy-paste the links one by one from the Arte website (one per line).
 
-1. clone the repository with `git`: `git clone https://github.com/yzerlaut/Fetch-Arte.git`
+    Example of the "arte.txt" file content, see the file: https://github.com/yzerlaut/Fetch-Arte/blob/master/arte.txt
 
-2. download the code in the zip format here:
-https://github.com/yzerlaut/Fetch-Arte/archive/master.zip
-and extract it where you want
+    By default, you should just modify this file in the `Fetch-Arte` folder (remove the current links and put the one you want).
 
-** Build your "arte.txt" file:
+-  Run the program:
+    ```
+    python -m fetch-arte
+    ```
 
-Just copy-paste the links one by one from the Arte website (one per line).
+    ** output
 
-Example of the "arte.txt" file content, see the file: https://github.com/yzerlaut/Fetch-Arte/blob/master/arte.txt
+    the script runs and downloads the videos one by one to the destination folder (the `~/Videos` directory if it exists otherwise the `Fetch-Arte` folder)
 
-By default, you should just modify this file in the `Fetch-Arte` folder (remove the current links and put the one you want).
+### Run the script with options
 
-## Run the script
-
-1. open the shell (command line interface)
-
-e.g. on windows, open the command prompt by searching `cmd` in the Windows Menu
-
-2. navigate to the directory 
-
-e.g. with the command `chdir` on windows , if the folder was extracted as `Fetch-Arte` in the folder `Downloads`:
+Run the following to see the available options:
 ```
-C:\Users\zeihr>chdir Downloads\Fetch-Arte
-
-C:\Users\zeihr\Downloads\Fetch-Arte>
+python -m fetch-arte --help
 ```
 
-3. run the program by executing:
-
-`python script.py `
-
-** output
-
-the script runs and downloads the videos one by one to the destination folder (the `Fetch-Arte/` directory)
-
-```
-C:\Users\zeihr\Downloads\Fetch-Arte>python script.py
- ** /!\ the destination directory /media/yann/DATA/Arte/ was not found  /!\ **
-
----> setting the destination directory to the current directory C:\Users\zeihr\Downloads\Fetch-Arte
-
- Link 1 ) ***************************************************
-Downloading: L'art aborigène au pied des Alpes (2 min)
-[==================================================]
-
- Link 2 ) ***************************************************
-Downloading: Paris se prépare aux taxis volants (3 min)
-[==================================================]
-
- Link 3 ) ***************************************************
-Downloading: La minute vieille (2 min)
-[==================================================]
-
- Link 4 ) ***************************************************
-Downloading: Innovations médicales (3 min)
-[==================================================]
-```
-
-Check that the videos are in the folder with the command `dir` in Windows (`ls` on UNIX systems):
-
-```
-C:\Users\zeihr\Downloads\Fetch-Arte>dir
- Volume in drive C is Windows
- Volume Serial Number is 9E40-DEC9
-
- Directory of C:\Users\zeihr\Downloads\Fetch-Arte
-
-07/30/2019  03:15 PM    <DIR>          .
-07/30/2019  03:15 PM    <DIR>          ..
-07/30/2019  03:03 PM               285 arte.txt
-07/30/2019  03:15 PM    <DIR>          Fetch-Arte-master
-07/30/2019  03:15 PM        23,033,620 Innovations_médicales.mp4
-07/30/2019  03:15 PM        16,738,939 L'art_aborigène_au_pied_des_Alpes.mp4
-07/30/2019  03:15 PM        12,147,214 La_minute_vieille.mp4
-07/30/2019  03:03 PM           420,638 notebook.ipynb
-07/30/2019  03:15 PM        18,535,123 Paris_se_prépare_aux_taxis_volants.mp4
-07/30/2019  03:03 PM             3,113 README.md
-07/30/2019  03:03 PM             6,185 script.py
-               8 File(s)     70,885,117 bytes
-               3 Dir(s)  10,399,690,752 bytes free
-```
+### In progress ...
 
 
-## Run the script with options
+- to deal with prefered languages, maybe one should use the different APIs, not the french one, to be discussed...
 
-Let's say that instead of the default setting, you want that:
-1. the `arte.txt` file considered is a file on the desktop
-2. your destination folder is a usb drive located at `/media/yann/USB_STICK/`
-3. the video is downloaded in the highest quality available, i.e.: 1280x720
-4. the prefered language is german instead of french
+- More sophisticated/automated workflow using Web scraping 
 
-you can run:
-```
-python script.py --txt_file /home/yann/Desktop/arte.txt --dest_folder /media/yann/USB_STICK/ --quality 1280x720 --prefered_languages VOA VA VOSTA
-```
+    *not woking yet* 
 
-N.B. to deal with prefered languages, maybe one should use the different APIs, not the french one, to be discussed...
+    *but the jupyter notebook `notebook.ipynb` provides fragments of code to fetch the content of the Arte website using [[https://pypi.org/project/beautifulsoup4/][BeautifulSoup]] and thus automates the download (not needing to manually build the `arte.txt` file)*
 
-the different options can be seen by running:
+- Organize your collection
 
-`python script.py --help`
-
-## More sophisticated/automated workflow using Web scraping 
-
-*not woking yet* 
-
-*but the jupyter notebook `notebook.ipynb` provides fragments of code to fetch the content of the Arte website using [[https://pypi.org/project/beautifulsoup4/][BeautifulSoup]] and thus automates the download (not needing to manually build the `arte.txt` file)*
-
-## Organize your collection
-
-to do [...]

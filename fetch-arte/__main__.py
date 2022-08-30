@@ -1,11 +1,11 @@
 import os, sys, pathlib
-import requests
 import numpy as np
 import argparse, pprint
 
-# custom modules
-import yt_dlp
+# yt_ldp command 
 YT_DLP = 'python -m yt_dlp'
+# ffmpeg command 
+FFMPEG = 'ffmpeg'
 
 import scraping
 
@@ -41,19 +41,20 @@ def Download(args):
 
             # means playlist
             title, playlist = scraping.extract_infos(link, debug=args.debug)
-            pathlib.Path(title).mkdir(parents=True, exist_ok=True) # create folder
+            pathlib.Path(os.path.join(args.dest_folder, 
+                         title)).mkdir(parents=True, exist_ok=True) # create folder
 
             for j, l in enumerate(playlist):
                 # loop over episodes
                 print('       - Episode #%i' % (j+1))
                 dl_link(l,
-                        filename=os.path.join(title, '%i.mp4' % (j+1)),
+                        filename=os.path.join(args.dest_folder, title, '%i.mp4' % (j+1)),
                         debug=args.debug)
 
         else:
             # single video download
             dl_link(link, 
-                    filename=scraping.title_from(link)+'.mp4',
+                    filename=os.path.join(args.dest_folder, scraping.title_from(link)+'.mp4'),
                     debug=args.debug)
 
 
@@ -132,7 +133,7 @@ def dl_link(link, filename='vid.mp4',
         cleanup()
 
 def cleanup():
-    for f in ['Video.mp4', 'Audio.mp4', 'Merged.mp4', 'Video.fr.vtt']:
+    for f in ['Video.mp4', 'Audio.mp4', 'Merged.mp4', 'Video.fr.vtt', 'temp.txt']:
         if os.path.isfile(f):
             os.remove(f)
 
@@ -158,11 +159,6 @@ if __name__=='__main__':
                         help="destination folder", type=str,
                         default=os.path.join(os.path.expanduser('~'), 'Videos'))
 
-    parser.add_argument('-af', "--archive_folder",
-                        help="archive folder to check if the file is not already present",
-                        type=str, nargs='*',
-                        default=['/media/yzerlaut/YANN_EXT4/VDtheque/'])
-    
     parser.add_argument('-q', "--quality",
                         help="""
                         quality of the videos in pixels, either:

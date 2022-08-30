@@ -2,11 +2,12 @@ import os, sys, pathlib
 import requests
 import numpy as np
 import argparse, pprint
-from urllib.request import Request, urlopen
-from bs4 import BeautifulSoup
 
+# custom modules
 import yt_dlp
-YTDLP = 'python -m yt_dlp'
+YT_DLP = 'python -m yt_dlp'
+
+import scraping
 
 def Download(args):
 
@@ -14,12 +15,15 @@ def Download(args):
 
         links = [args.link]
 
-    elif os,path.isfile(args.txt_file):
+    elif os.path.isfile(args.txt_file):
 
         File = open(args.txt_file, 'r')
         links = [File.readline().replace('\n', '')]
         while links[-1]!='':
             links.append(File.readline().replace('\n', ''))
+            if '# ' in links[-1]: # remove commented links
+                links.remove(links[-1])
+
         links.remove('')
         File.close()
 
@@ -29,22 +33,42 @@ def Download(args):
         links = []
 
     for i, link in enumerate(links):
-        print('\n Link %i ) ***************************************************' % (i+1))
+
+        print('\n Link %i ) *******************************************' % (i+1))
         print('    ', link)
-        dl_link(link)
+
+        if 'RC-' in link:
+
+            # means playlist
+            title, playlist = scraping.extract_infos(link, debug=args.debug)
+            pathlib.Path(title).mkdir(parents=True, exist_ok=True) # create folder
+
+            for j, l in enumerate(playlist):
+                # loop over episodes
+                print('       - Episode #%i' % (j+1))
+                dl_link(l,
+                        filename=os.path.join(title, '%i.mp4' % (j+1)),
+                        debug=args.debug)
+
+        else:
+            # single video download
+            dl_link(link, 
+                    filename=scraping.title_from(link)+'.mp4',
+                    debug=args.debug)
 
 
 
-def inspect_format(debug):
+def inspect_format(debug=False):
 
     Formats = open('temp.txt', 'r')
-    video_id, audio_id = '', ''
+    video_id, audio_id, with_subs = '', '', True
 
     line = Formats.readline()
 
     language_index = 0 # ADD LOOP
 
     while line !='':
+
         # video
         if (args.quality in line) and (args.languages[language_index] in line):    
             video_id = line.split(' ')[0]
@@ -57,27 +81,30 @@ def inspect_format(debug):
                 print(audio_id)
         line = Formats.readline()
 
-    return video_id, audio_id
+    return video_id, audio_id, with_subs
 
 
 
-def dl_link(link, debug=False):
+
+def dl_link(link, filename='vid.mp4', 
+            debug=False):
 
     list_cmd = YT_DLP+' %s --list-formats > temp.txt' % link 
     os.system(list_cmd)
 
-    video_id, audio_id = inspect_format()
+    video_id, audio_id, with_subs = inspect_format(debug=args.debug)
 
     # video download
-    video_cmd = YT_DLP+' --write-subs -f "all[format_id=%s]" %s --output Video.mp4' %\
-            (video_id, link)
+    video_cmd = YT_DLP+'%s -f "all[format_id=%s]" %s --output Video.mp4' %\
+            (' --write-subs' if with_subs else '',
+                    video_id, link)
     if debug:
         print(video_cmd)
     else:
         os.system(video_cmd)
     
     # audio download
-    audio_cmd = YT_DLP+'-f "all[format_id=%s]" %s --output Audio.mp4' %\
+    audio_cmd = YT_DLP+' -f "all[format_id=%s]" %s --output Audio.mp4' %\
             (audio_id, link)
     if debug:
         print(audio_cmd)
@@ -91,237 +118,31 @@ def dl_link(link, debug=False):
     else:
         os.system(merge_cmd)
 
+    # add subtitles
+    if with_subs:
+        merge_cmd = 'ffmpeg -i Merged.mp4 -vf subtitles=Video.fr.vtt %s' % filename
+        if debug:
+            print(merge_cmd)
+        else:
+            os.system(merge_cmd)
+    else:
+        os.rename('Merged.mp4', filename)
 
-# def reformat_props(data):
+    if not debug:
+        cleanup()
 
+def cleanup():
+    for f in ['Video.mp4', 'Audio.mp4', 'Merged.mp4', 'Video.fr.vtt']:
+        if os.path.isfile(f):
+            os.remove(f)
 
-    # props = {'title':data['metadata']['title'],
-             # 'duration':float(data['metadata']['duration']['seconds'])/60.,
-             # 'description':data['metadata']['description'],
-             # 'language':[], 'language_short':[],
-             # 'url':[]}
-    
-             
-    # for stream in data['streams']:
-        # props['language'].append(stream['versions'][0]['shortLabel'])
-        # props['url'].append(stream['url'])
-    
-    # props['language'] = np.array(props['language'])
-    # props['url'] = np.array(props['url'])
-    
-    # if props['title'] == 'ARTE Reportage':
-        # props['title'] = data['subtitle']+'_ARTE_Reportage'
-    # props['title'] = props['title'].replace('Xenius -', '')
-
-    # props['reformated_title'] = props['title'].replace('  ', '_').replace(' ','_').replace('/', '-').replace('‘', '-').replace('’', '-').replace('?', '').replace('ê', 'e').replace(':', '_')
-
-    # return props
-
-# class video:
-        
-    # def __init__(self, ID, args,
-                 # folder='./',
-                 # subfolder=None,
-                 # filename=None):
-        
-
-        # self.ID = ID
-        # self.file_url, self.file_location = '', ''
-        # req = requests.get(self.ID)
-
-        # if args.debug:
-            # print('request output:')
-            # pprint.pprint(req.json())
-
-        # try:
-            # self.data = req.json()['data']['attributes']
-            # self.props = reformat_props(self.data)
-            # self.props['original_link'] = ID
-        # except BaseException as be:
-            # # print(be)
-            # print('')
-            # print(' /!\ video metadata couldnt be extracted from the webpage  /!\ ')
-            # print('')
-            # self.props = {'original_link':ID,
-                    # 'reformated_title':'test.mp4'}
-        
-        # if args.debug:
-            # pprint.pprint(self.props)
-        
-        # if subfolder in [None, '']:
-            # folder = folder
-        # else:
-            # secure_folder(subfolder, folder)
-            # folder = os.path.join(folder, subfolder)
-            
-        # # if filename in [None, '']:
-            # # self.file_location = os.path.join(folder,
-                                              # # self.props['reformated_title']+args.extension)
-        # # else:
-            # # self.file_location = os.path.join(folder,
-                                              # # filename+args.extension)
-
-    # def show_props(self):
-        # pprint.pprint(self.props)
-        
-    # def pick_url_based_on_language(self,
-                                   # languages = ['VOSTF', 'VOF', 'VF']):
-
-        # self.file_url = None
-
-        # for l in languages:
-            # # looking for the first match
-            # cond = (self.props['language']==l)
-            # if np.sum(cond)>0:
-                # self.file_url = self.props['url'][cond][0]
-                # break # the loop over language
-
-    
-    # def download(self,
-                 # languages = ['VOSTF', 'VOF', 'VF'],
-                 # quality='720p',
-                 # chunk_size = 512*512):
-       
-        # # no just relying on yt-dlp
-        # #sys.argv = ['', self.props['original_url'], 
-        # #            '--output', '"%s"' % self.props['reformated_title']]
-        # sys.argv = ['', self.props['original_url'], '--list-formats']
-        # yt_dlp.main()
-
-        # # self.pick_url_based_on_language(languages)
-        # # cmd = 'ffmpeg -i %s -c copy -bsf:a aac_adtstoasc %s' % (self.file_url, self.file_location)
-        # # print(cmd)
-        # # os.system(cmd)
-        # # if 'arteptwebvod' in self.file_url:
-            # # os.system(cmd)
-        # # else:
-            # # print('video stream currently not supported')
-        
-
-    # def check_success(self):
-        # try:
-            # statinfo = os.stat(self.file_location)
-            # if statinfo.st_size<1e4:
-                # print('/!\ Download failed, visit:')
-                # # print('----->  visit https://api.arte.tv/api/player/v1/config/fr/'+self.ID)
-        # except FileNotFoundError:
-            # pass
-                    
-
-# def already_there(filename, args):
-    # here = False
-    # folders = args.archive_folder
-    # folders.append(args.dest_folder)
-    # for folder in folders:
-        # for dd in os.walk(folder):
-            # if os.path.isfile(os.path.join(dd[0],filename)):
-                # here = True
-                # print('---> File already present in:', os.path.join(dd[0],filename))
-    # return here
-    
-# def secure_folder(folderstring, basefolder):
-
-    # full_folder = basefolder
-    # for f in folderstring.split('/'):
-        # full_folder = os.path.join(full_folder, f)
-        # if not os.path.isdir(full_folder):
-            # os.mkdir(full_folder)
-    # return full_folder
-    
-
-# class Download:
-
-    # def __init__(self, args):
-
-        # self.args = args
-        # self.IDS, self.SBFLDR, self.FNS = [], [], [] # Ids, Subfolders, Filenames
-
-        # if args.link!='':
-            # self.single_run(args)
-        # else:
-            # self.File = open(args.txt_file, 'r')
-            # self.list_run()
-
-    # def read_line_and_set_download_location(self):
-
-        # if len(self.linestring.split(';'))==3:
-            # # this means that : desired_name;desired_folder;url
-            # return self.linestring.split(';')
-        # elif len(self.linestring.split(';'))==2:
-            # # this means that : desired_folder;url
-            # return '', self.linestring.split(';')[0], self.linestring.split(';')[1]
-        # elif '/RC-' in self.linestring:
-            # folder = self.linestring.split('/')[-1]
-            # if len(folder)==0:
-                # folder = self.linestring.split('/')[-2]
-            # # print(folder)
-            # return '', folder, self.linestring
-        # else: # we have just the link
-            # return '', '', self.linestring
-
-    # def extract_list_of_links(self, link):
-
-        # req = Request(link)
-        # html_page = urlopen(req)
-
-        # soup = BeautifulSoup(html_page, 'lxml')
-        # links = []
-        # for Link in soup.findAll('a'):
-            # l = Link.get('href')
-            # if (link.split('/')[-2] in l) and ('RC-' not in l) and ('boutique' not in l):
-                # links.append(l)
-
-        # return links
-
-    # def single_run(self, args,
-                   # subfolder='', filename=None, ii=0):
-        
-        # print('\n Link %i ) ***************************************************' % (ii+1))
-        # print('    ', args.link)
-
-        # if '/RC-' in args.link:
-            # links = self.extract_list_of_links(args.link)
-            # pprint.pprint(links)
-        # # else:
-
-        # vid = video(args.link, args,
-                    # folder=args.dest_folder,
-                    # subfolder=subfolder,
-                    # filename=filename)
-
-        # vid.props['original_url'] = args.link
-        # if args.debug:
-            # print(' -- debug mode --   not downloading')
-        # else:
-            # vid.download()
-
-    # def list_run(self):
-        
-        # self.linestring = self.File.readline()
-        
-        # while len(self.linestring)>1:
-
-            # if self.linestring[0]!='#': # not commented
-                # self.desired_name, self.desired_subfolder, self.link = self.read_line_and_set_download_location()
-                # args.link = self.linestring
-                # self.single_run(args)
-
-            # self.linestring = self.File.readline()
-
-        
-    # def close(self):
-        # self.File.close()
-        
-    
 
         
 if __name__=='__main__':
     
-    # First a nice documentation 
     parser=argparse.ArgumentParser(description=
      """ 
-     Generating random sample of a given distributions and
-     comparing it with its theoretical value
+     Launch the download of Arte Videos
      """
     ,formatter_class=argparse.RawTextHelpFormatter)
 
@@ -348,6 +169,7 @@ if __name__=='__main__':
                         384x216, 640x360, 768x432, 1280x720
                         """,
                         type=str, default='640x360')
+    parser.add_argument('-LQ', '--low_quality', action="store_true")
 
     parser.add_argument("--languages",\
                         help="""
@@ -360,10 +182,15 @@ if __name__=='__main__':
                         type=str,
                         default=['VO-STF', 'VFSTF'])
     
+    parser.add_argument('--cleanup', action="store_true",
+                        help="cleanup residual movie files")
     parser.add_argument('--debug', action="store_true",
                         help="prevent downloading")
     
     args = parser.parse_args()
+
+    if args.low_quality:
+        args.quality = '384x216'
 
     # check if destination folder exists
     if not os.path.isdir(args.dest_folder):
@@ -371,5 +198,7 @@ if __name__=='__main__':
         args.dest_folder = os.path.abspath(os.path.curdir)
         print('---> setting the destination directory to the current directory %s' % args.dest_folder)
 
-    Download(args)
-    
+    if args.cleanup:
+        cleanup()
+    else:
+        Download(args)

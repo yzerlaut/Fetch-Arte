@@ -87,7 +87,8 @@ def inspect_format(debug=False):
 
 
 
-def dl_link(link, filename='vid.mp4', 
+def dl_link(link, 
+            filename='vid.mp4', 
             debug=False):
 
     list_cmd = YT_DLP+' %s --list-formats > temp.txt' % link 
@@ -99,6 +100,7 @@ def dl_link(link, filename='vid.mp4',
     video_cmd = YT_DLP+'%s -f "all[format_id=%s]" %s --output Video.mp4' %\
             (' --write-subs' if with_subs else '',
                     video_id, link)
+    print('\n           --> downloading video')
     if debug:
         print(video_cmd)
     else:
@@ -107,6 +109,7 @@ def dl_link(link, filename='vid.mp4',
     # audio download
     audio_cmd = YT_DLP+' -f "all[format_id=%s]" %s --output Audio.mp4' %\
             (audio_id, link)
+    print('\n           --> downloading audio')
     if debug:
         print(audio_cmd)
     else:
@@ -114,6 +117,7 @@ def dl_link(link, filename='vid.mp4',
 
     # merge with ffmpeg
     merge_cmd = 'ffmpeg -i Video.mp4 -i Audio.mp4 -c:v copy -c:a aac Merged.mp4'
+    print('\n           --> merging video and audio')
     if debug:
         print(merge_cmd)
     else:
@@ -121,6 +125,7 @@ def dl_link(link, filename='vid.mp4',
 
     # add subtitles
     if with_subs:
+        print('\n           --> adding subtitles')
         merge_cmd = 'ffmpeg -i Merged.mp4 -vf subtitles=Video.fr.vtt %s' % filename
         if debug:
             print(merge_cmd)

@@ -19,10 +19,14 @@ def Download(args):
 
         File = open(args.txt_file, 'r')
         links = [File.readline().replace('\n', '')]
+
         while links[-1]!='':
-            links.append(File.readline().replace('\n', ''))
-            if '# ' in links[-1]: # remove commented links
+            
+            # remove commented links
+            if '# ' in links[-1]:
                 links.remove(links[-1])
+
+            links.append(File.readline().replace('\n', ''))
 
         links.remove('')
         File.close()
@@ -44,13 +48,46 @@ def Download(args):
             pathlib.Path(os.path.join(args.dest_folder, 
                          title)).mkdir(parents=True, exist_ok=True) # create folder
 
-            for j, l in enumerate(playlist):
-                # loop over episodes
-                print('       - Episode #%i' % (j+1))
-                dl_link(l,
-                        filename=os.path.join(args.dest_folder, title, '%i.mp4' % (j+1)),
-                        debug=args.debug)
+            season, ep = 0, 1
 
+            for l in playlist:
+                # loop over playlist element
+
+                # checking if aranged by seasons
+                is_sorted_by_season, previous_season_ep, season = False, season, 0
+               
+                while season<30 and not is_sorted_by_season:
+
+                     # find out which season is it
+                    if ('saison-%i-'%season) in l:
+                        is_sorted_by_season = True
+                        # is it a new season ?
+                        if season!=previous_season_ep:
+                            # reset episode number
+                            ep = 1
+                            # and create folder if not there
+                            season_folder = os.path.join(args.dest_folder, title, 'saison-%i'%season)
+                            pathlib.Path(season_folder).mkdir(parents=True, exist_ok=True) # create folder
+
+                    season += 1
+                season -=1 
+                print(season)
+
+                if is_sorted_by_season:
+
+                    print('       - Season %i - Episode #%i' % (season, ep))
+                    dl_link(l,
+                            filename=os.path.join(season_folder, '%i.mp4' % ep),
+                            debug=args.debug)
+
+                else:
+
+                    print('       - Episode #%i' % ep)
+                    dl_link(l,
+                            filename=os.path.join(args.dest_folder, title, '%i.mp4' % ep),
+                            debug=args.debug)
+                ep += 1
+                
         else:
             # single video download
             dl_link(link, 
@@ -61,26 +98,32 @@ def Download(args):
 
 def inspect_format(debug=False):
 
-    Formats = open('temp.txt', 'r')
     video_id, audio_id, with_subs = '', '', True
 
-    line = Formats.readline()
+    for language_index in range(len(args.languages)):
 
-    language_index = 0 # ADD LOOP
-
-    while line !='':
-
-        # video
-        if (args.quality in line) and (args.languages[language_index] in line):    
-            video_id = line.split(' ')[0]
-            if debug:
-                print(video_id)
-        # audio
-        if (args.languages[language_index]+'-program_audio' in line):    
-            audio_id = line.split(' ')[0]
-            if debug:
-                print(audio_id)
+        Formats = open('temp.txt', 'r')
         line = Formats.readline()
+
+        while line !='':
+
+            # video
+            if (args.quality in line) and (args.languages[language_index] in line):    
+                video_id = line.split(' ')[0]
+                if debug:
+                    print('video ID:', video_id)
+            # audio
+            if (args.languages[language_index]+'-program_audio' in line):    
+                audio_id = line.split(' ')[0]
+                if debug:
+                    print('audio ID:', audio_id)
+            line = Formats.readline()
+
+        if video_id!='' and audio_id!='':
+            break
+
+    if 'VF-STF' in audio_id:
+        with_subs = False # turn off if in french
 
     return video_id, audio_id, with_subs
 
@@ -116,7 +159,7 @@ def dl_link(link,
         os.system(audio_cmd)
 
     # merge with ffmpeg
-    merge_cmd = 'ffmpeg -i Video.mp4 -i Audio.mp4 -c:v copy -c:a aac Merged.mp4'
+    merge_cmd = 'ffmpeg -i Video.mp4 -i Audio.mp4 -c:v copy -c:a copy Merged.mp4'
     print('\n           --> merging video and audio')
     if debug:
         print(merge_cmd)
@@ -126,15 +169,15 @@ def dl_link(link,
     # add subtitles
     if with_subs:
         print('\n           --> adding subtitles')
-        merge_cmd = 'ffmpeg -i Merged.mp4 -vf subtitles=Video.fr.vtt %s' % filename
+        merge_cmd = 'ffmpeg -i Merged.mp4 -vf subtitles=Video.fr.vtt -c:a copy %s' % filename
         if debug:
             print(merge_cmd)
         else:
             os.system(merge_cmd)
-    else:
+    elif not debug:
         os.rename('Merged.mp4', filename)
 
-    if not debug:
+    if not debug and not args.no_cleanup:
         cleanup()
 
 def cleanup():
@@ -181,10 +224,12 @@ if __name__=='__main__':
                         pick: ['VO-STF', 'VF-STF']""", 
                         nargs='+',
                         type=str,
-                        default=['VO-STF', 'VFSTF'])
+                        default=['VO-STF', 'VF-STF'])
     
     parser.add_argument('--cleanup', action="store_true",
-                        help="cleanup residual movie files")
+                        help="do only the cleanup of residual movie files")
+    parser.add_argument('-ncu', '--no_cleanup', action="store_true",
+                        help="prevent cleanup of residual movie files")
     parser.add_argument('--debug', action="store_true",
                         help="prevent downloading")
     

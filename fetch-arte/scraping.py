@@ -12,7 +12,6 @@ def title_from(link):
 
 def extract_infos(link, debug=False):
 
-    print(' ~~~~~~~~~~~~ ')
     title = title_from(link)
 
     req = Request(link)
@@ -41,6 +40,5 @@ def extract_infos(link, debug=False):
 if __name__=='__main__':
     
     link = sys.argv[-1]
-
 
     extract_infos(link)

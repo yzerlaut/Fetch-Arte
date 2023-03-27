@@ -12,8 +12,6 @@ def inspect(args, debug=False):
 
         while line !='':
 
-            print(line)
-
             # video
             if (args.quality in line) and (args.languages[language_index] in line):    
                 video_id = line.split(' ')[0]

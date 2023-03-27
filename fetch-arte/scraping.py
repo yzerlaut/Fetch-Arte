@@ -12,6 +12,7 @@ def title_from(link):
 
 def extract_infos(link, debug=False):
 
+    print(' ~~~~~~~~~~~~ ')
     title = title_from(link)
 
     req = Request(link)
@@ -25,6 +26,8 @@ def extract_infos(link, debug=False):
         if debug:
             print(l)
         if (title in l) and ('RC-' not in l) and ('boutique' not in l):
+            if 'arte' not in l:
+                l = 'https://www.arte.tv'+l
             if debug:
                 print('   -> selecting:', l)
             links.append(l)

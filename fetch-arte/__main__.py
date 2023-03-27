@@ -2,12 +2,9 @@ import os, sys, pathlib
 import numpy as np
 import argparse, pprint
 
-# yt_ldp command 
-YT_DLP = 'python -m yt_dlp'
-# ffmpeg command 
-FFMPEG = 'ffmpeg'
-
+from env import *
 import scraping
+import format
 
 def Download(args):
 
@@ -96,51 +93,14 @@ def Download(args):
 
 
 
-def inspect_format(debug=False):
-
-    video_id, audio_id, with_subs = '', '', True
-
-    for language_index in range(len(args.languages)):
-
-        Formats = open('temp.txt', 'r')
-        line = Formats.readline()
-
-        while line !='':
-
-            # video
-            if (args.quality in line) and (args.languages[language_index] in line):    
-                video_id = line.split(' ')[0]
-                if debug:
-                    print('video ID:', video_id)
-            # audio
-            if (args.languages[language_index]+'-program_audio' in line):    
-                audio_id = line.split(' ')[0]
-                if debug:
-                    print('audio ID:', audio_id)
-            line = Formats.readline()
-
-        if video_id!='' and audio_id!='':
-            break
-
-    if 'VF-STF' in audio_id:
-        with_subs = False # turn off if in french
-
-    return video_id, audio_id, with_subs
-
-
-
-
 def dl_link(link, 
             filename='vid.mp4', 
             debug=False):
 
-    list_cmd = YT_DLP+' %s --list-formats > temp.txt' % link 
-    os.system(list_cmd)
-
-    video_id, audio_id, with_subs = inspect_format(debug=args.debug)
+    video_id, audio_id, with_subs = format.inspect(args, debug=args.debug)
 
     # video download
-    video_cmd = YT_DLP+'%s -f "all[format_id=%s]" %s --output Video.mp4' %\
+    video_cmd = YT_DLP+'%s -f %s %s --output Video.mp4' %\
             (' --write-subs' if with_subs else '',
                     video_id, link)
     print('\n           --> downloading video')
@@ -150,7 +110,7 @@ def dl_link(link,
         os.system(video_cmd)
     
     # audio download
-    audio_cmd = YT_DLP+' -f "all[format_id=%s]" %s --output Audio.mp4' %\
+    audio_cmd = YT_DLP+' -f %s %s --output Audio.mp4' %\
             (audio_id, link)
     print('\n           --> downloading audio')
     if debug:
@@ -224,7 +184,7 @@ if __name__=='__main__':
                         pick: ['VO-STF', 'VF-STF']""", 
                         nargs='+',
                         type=str,
-                        default=['VO-STF', 'VF-STF'])
+                        default=['VO-STF', 'VOF-STF', 'VF-STF'])
     
     parser.add_argument('--cleanup', action="store_true",
                         help="do only the cleanup of residual movie files")

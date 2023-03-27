@@ -97,6 +97,8 @@ def dl_link(link,
             filename='vid.mp4', 
             debug=False):
 
+
+    os.system(YT_DLP+' %s --list-formats > temp.txt' % link)
     video_id, audio_id, with_subs = format.inspect(args, debug=args.debug)
 
     # video download

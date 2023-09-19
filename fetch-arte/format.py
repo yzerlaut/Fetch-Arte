@@ -13,12 +13,12 @@ def inspect(args, debug=False):
         while line !='':
 
             # video
-            if (args.quality in line) and (args.languages[language_index] in line):    
+            if (args.quality in line) and (args.languages[language_index] in line):
                 video_id = line.split(' ')[0]
                 if debug:
                     print('video ID:', video_id)
             # audio
-            if (args.languages[language_index]+'-program_audio' in line):    
+            if (args.languages[language_index]+'-program_audio' in line):
                 audio_id = line.split(' ')[0]
                 if debug:
                     print('audio ID:', audio_id)
@@ -50,14 +50,14 @@ if __name__=='__main__':
     parser.add_argument("--languages",\
                         help="""
                         default language of the videos
-                        in the order of preferences, 
-                        e.g. for a french speaker prefering french only 
+                        in the order of preferences,
+                        e.g. for a french speaker prefering french only
                         when original language was french otherwise vostfr,
-                        pick: ['VO-STF', 'VF-STF']""", 
+                        pick: ['VO-STF', 'VF-STF']""",
                         nargs='+',
                         type=str,
                         default=['VO-STF', 'VOF-STF', 'VF-STF'])
-    
+
     args = parser.parse_args()
 
     if args.low_quality:
@@ -65,7 +65,7 @@ if __name__=='__main__':
 
     link = sys.argv[-1]
 
-    list_cmd = YT_DLP+' %s --list-formats > temp.txt' % link 
+    list_cmd = YT_DLP+' %s --list-formats > temp.txt' % link
     os.system(list_cmd)
 
     inspect(args, debug=True)
